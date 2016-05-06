@@ -61,6 +61,14 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 	return &m, nil
 }
 
+// Debug turns on debug logging
+func Debug() func(*Module) error {
+	return func(m *Module) error {
+		m.debug = true
+		return nil
+	}
+}
+
 // Socket is a function argument to set where send data to the agent
 func Socket(address string) func(*Module) error {
 	return func(m *Module) error {
@@ -217,7 +225,7 @@ func (m *Module) getConnection() (net.Conn, error) {
 	return m.makeConnection()
 }
 
-// AgentPreRequest makes a prerequest RPC call to the agent
+// agentPreRequest makes a prerequest RPC call to the agent
 func (m *Module) agentPreRequest(req *http.Request) (agentin2 rpcMsgIn2, out rpcMsgOut, err error) {
 	conn, err := m.getConnection()
 	if err != nil {
