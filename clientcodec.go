@@ -9,6 +9,12 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
+// Adaptors for golang's RPC mechanism using MSGPACK
+//
+// * http://msgpack.org
+// * https://golang.org/pkg/net/rpc/
+//
+
 // defines the MSGPACK RPC format
 type msgpClientCodec struct {
 	dec *msgp.Reader
