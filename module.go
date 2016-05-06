@@ -38,6 +38,7 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 	// the following are the defaults
 	// you over-ride them by passing in function arguments
 	m := Module{
+		handler:          h,
 		rpcAddress:       "unix:/var/run/sigsci.sock",
 		debug:            false,
 		pool:             nil,
