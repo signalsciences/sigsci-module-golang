@@ -50,16 +50,15 @@ func TestNewRPCMsgFromRequest(t *testing.T) {
 		}
 	}
 
-	got := NewRPCMsgIn(r, false, -1, -1, -1)
+	got := newRPCMsgIn(r, "", -1, -1, -1)
 	if ne, equal := eq(*got, want); !equal {
 		t.Errorf("NewWafMsgFromRequest: incorrect %q", ne)
 	}
 }
 
-
 // helper functions
 func TestStripPort(t *testing.T) {
-	got := StripPort("127.0.0.1:8000")
+	got := stripPort("127.0.0.1:8000")
 	if got != "127.0.0.1" {
 		t.Errorf("StripPort(%q) = %q, want %q", "127.0.0.1:8000", got, "127.0.0.1")
 	}
