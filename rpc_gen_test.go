@@ -11,8 +11,8 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-func TestMarshalUnmarshalRPCMsgIn(t *testing.T) {
-	v := RPCMsgIn{}
+func TestMarshalUnmarshalrpcMsgIn(t *testing.T) {
+	v := rpcMsgIn{}
 	bts, err := v.MarshalMsg(nil)
 	if err != nil {
 		t.Fatal(err)
@@ -34,8 +34,8 @@ func TestMarshalUnmarshalRPCMsgIn(t *testing.T) {
 	}
 }
 
-func BenchmarkMarshalMsgRPCMsgIn(b *testing.B) {
-	v := RPCMsgIn{}
+func BenchmarkMarshalMsgrpcMsgIn(b *testing.B) {
+	v := rpcMsgIn{}
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -43,8 +43,8 @@ func BenchmarkMarshalMsgRPCMsgIn(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendMsgRPCMsgIn(b *testing.B) {
-	v := RPCMsgIn{}
+func BenchmarkAppendMsgrpcMsgIn(b *testing.B) {
+	v := rpcMsgIn{}
 	bts := make([]byte, 0, v.Msgsize())
 	bts, _ = v.MarshalMsg(bts[0:0])
 	b.SetBytes(int64(len(bts)))
@@ -55,8 +55,8 @@ func BenchmarkAppendMsgRPCMsgIn(b *testing.B) {
 	}
 }
 
-func BenchmarkUnmarshalRPCMsgIn(b *testing.B) {
-	v := RPCMsgIn{}
+func BenchmarkUnmarshalrpcMsgIn(b *testing.B) {
+	v := rpcMsgIn{}
 	bts, _ := v.MarshalMsg(nil)
 	b.ReportAllocs()
 	b.SetBytes(int64(len(bts)))
@@ -69,8 +69,8 @@ func BenchmarkUnmarshalRPCMsgIn(b *testing.B) {
 	}
 }
 
-func TestEncodeDecodeRPCMsgIn(t *testing.T) {
-	v := RPCMsgIn{}
+func TestEncodeDecoderpcMsgIn(t *testing.T) {
+	v := rpcMsgIn{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 
@@ -79,7 +79,7 @@ func TestEncodeDecodeRPCMsgIn(t *testing.T) {
 		t.Logf("WARNING: Msgsize() for %v is inaccurate", v)
 	}
 
-	vn := RPCMsgIn{}
+	vn := rpcMsgIn{}
 	err := msgp.Decode(&buf, &vn)
 	if err != nil {
 		t.Error(err)
@@ -93,8 +93,8 @@ func TestEncodeDecodeRPCMsgIn(t *testing.T) {
 	}
 }
 
-func BenchmarkEncodeRPCMsgIn(b *testing.B) {
-	v := RPCMsgIn{}
+func BenchmarkEncoderpcMsgIn(b *testing.B) {
+	v := rpcMsgIn{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))
@@ -107,8 +107,8 @@ func BenchmarkEncodeRPCMsgIn(b *testing.B) {
 	en.Flush()
 }
 
-func BenchmarkDecodeRPCMsgIn(b *testing.B) {
-	v := RPCMsgIn{}
+func BenchmarkDecoderpcMsgIn(b *testing.B) {
+	v := rpcMsgIn{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))
@@ -124,8 +124,8 @@ func BenchmarkDecodeRPCMsgIn(b *testing.B) {
 	}
 }
 
-func TestMarshalUnmarshalRPCMsgIn2(t *testing.T) {
-	v := RPCMsgIn2{}
+func TestMarshalUnmarshalrpcMsgIn2(t *testing.T) {
+	v := rpcMsgIn2{}
 	bts, err := v.MarshalMsg(nil)
 	if err != nil {
 		t.Fatal(err)
@@ -147,8 +147,8 @@ func TestMarshalUnmarshalRPCMsgIn2(t *testing.T) {
 	}
 }
 
-func BenchmarkMarshalMsgRPCMsgIn2(b *testing.B) {
-	v := RPCMsgIn2{}
+func BenchmarkMarshalMsgrpcMsgIn2(b *testing.B) {
+	v := rpcMsgIn2{}
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -156,8 +156,8 @@ func BenchmarkMarshalMsgRPCMsgIn2(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendMsgRPCMsgIn2(b *testing.B) {
-	v := RPCMsgIn2{}
+func BenchmarkAppendMsgrpcMsgIn2(b *testing.B) {
+	v := rpcMsgIn2{}
 	bts := make([]byte, 0, v.Msgsize())
 	bts, _ = v.MarshalMsg(bts[0:0])
 	b.SetBytes(int64(len(bts)))
@@ -168,8 +168,8 @@ func BenchmarkAppendMsgRPCMsgIn2(b *testing.B) {
 	}
 }
 
-func BenchmarkUnmarshalRPCMsgIn2(b *testing.B) {
-	v := RPCMsgIn2{}
+func BenchmarkUnmarshalrpcMsgIn2(b *testing.B) {
+	v := rpcMsgIn2{}
 	bts, _ := v.MarshalMsg(nil)
 	b.ReportAllocs()
 	b.SetBytes(int64(len(bts)))
@@ -182,8 +182,8 @@ func BenchmarkUnmarshalRPCMsgIn2(b *testing.B) {
 	}
 }
 
-func TestEncodeDecodeRPCMsgIn2(t *testing.T) {
-	v := RPCMsgIn2{}
+func TestEncodeDecoderpcMsgIn2(t *testing.T) {
+	v := rpcMsgIn2{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 
@@ -192,7 +192,7 @@ func TestEncodeDecodeRPCMsgIn2(t *testing.T) {
 		t.Logf("WARNING: Msgsize() for %v is inaccurate", v)
 	}
 
-	vn := RPCMsgIn2{}
+	vn := rpcMsgIn2{}
 	err := msgp.Decode(&buf, &vn)
 	if err != nil {
 		t.Error(err)
@@ -206,8 +206,8 @@ func TestEncodeDecodeRPCMsgIn2(t *testing.T) {
 	}
 }
 
-func BenchmarkEncodeRPCMsgIn2(b *testing.B) {
-	v := RPCMsgIn2{}
+func BenchmarkEncoderpcMsgIn2(b *testing.B) {
+	v := rpcMsgIn2{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))
@@ -220,8 +220,8 @@ func BenchmarkEncodeRPCMsgIn2(b *testing.B) {
 	en.Flush()
 }
 
-func BenchmarkDecodeRPCMsgIn2(b *testing.B) {
-	v := RPCMsgIn2{}
+func BenchmarkDecoderpcMsgIn2(b *testing.B) {
+	v := rpcMsgIn2{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))
@@ -237,8 +237,8 @@ func BenchmarkDecodeRPCMsgIn2(b *testing.B) {
 	}
 }
 
-func TestMarshalUnmarshalRPCMsgOut(t *testing.T) {
-	v := RPCMsgOut{}
+func TestMarshalUnmarshalrpcMsgOut(t *testing.T) {
+	v := rpcMsgOut{}
 	bts, err := v.MarshalMsg(nil)
 	if err != nil {
 		t.Fatal(err)
@@ -260,8 +260,8 @@ func TestMarshalUnmarshalRPCMsgOut(t *testing.T) {
 	}
 }
 
-func BenchmarkMarshalMsgRPCMsgOut(b *testing.B) {
-	v := RPCMsgOut{}
+func BenchmarkMarshalMsgrpcMsgOut(b *testing.B) {
+	v := rpcMsgOut{}
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -269,8 +269,8 @@ func BenchmarkMarshalMsgRPCMsgOut(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendMsgRPCMsgOut(b *testing.B) {
-	v := RPCMsgOut{}
+func BenchmarkAppendMsgrpcMsgOut(b *testing.B) {
+	v := rpcMsgOut{}
 	bts := make([]byte, 0, v.Msgsize())
 	bts, _ = v.MarshalMsg(bts[0:0])
 	b.SetBytes(int64(len(bts)))
@@ -281,8 +281,8 @@ func BenchmarkAppendMsgRPCMsgOut(b *testing.B) {
 	}
 }
 
-func BenchmarkUnmarshalRPCMsgOut(b *testing.B) {
-	v := RPCMsgOut{}
+func BenchmarkUnmarshalrpcMsgOut(b *testing.B) {
+	v := rpcMsgOut{}
 	bts, _ := v.MarshalMsg(nil)
 	b.ReportAllocs()
 	b.SetBytes(int64(len(bts)))
@@ -295,8 +295,8 @@ func BenchmarkUnmarshalRPCMsgOut(b *testing.B) {
 	}
 }
 
-func TestEncodeDecodeRPCMsgOut(t *testing.T) {
-	v := RPCMsgOut{}
+func TestEncodeDecoderpcMsgOut(t *testing.T) {
+	v := rpcMsgOut{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 
@@ -305,7 +305,7 @@ func TestEncodeDecodeRPCMsgOut(t *testing.T) {
 		t.Logf("WARNING: Msgsize() for %v is inaccurate", v)
 	}
 
-	vn := RPCMsgOut{}
+	vn := rpcMsgOut{}
 	err := msgp.Decode(&buf, &vn)
 	if err != nil {
 		t.Error(err)
@@ -319,8 +319,8 @@ func TestEncodeDecodeRPCMsgOut(t *testing.T) {
 	}
 }
 
-func BenchmarkEncodeRPCMsgOut(b *testing.B) {
-	v := RPCMsgOut{}
+func BenchmarkEncoderpcMsgOut(b *testing.B) {
+	v := rpcMsgOut{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))
@@ -333,8 +333,8 @@ func BenchmarkEncodeRPCMsgOut(b *testing.B) {
 	en.Flush()
 }
 
-func BenchmarkDecodeRPCMsgOut(b *testing.B) {
-	v := RPCMsgOut{}
+func BenchmarkDecoderpcMsgOut(b *testing.B) {
+	v := rpcMsgOut{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))

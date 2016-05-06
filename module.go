@@ -138,7 +138,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	agentin2, out, err := m.AgentPreRequest(req)
+	agentin2, out, err := m.agentPreRequest(req)
 	if err != nil {
 		// Fail open
 		if m.debug {
@@ -216,7 +216,7 @@ func (m *Module) getConnection() (net.Conn, error) {
 }
 
 // AgentPreRequest makes a prerequest RPC call to the agent
-func (m *Module) AgentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPCMsgOut, err error) {
+func (m *Module) agentPreRequest(req *http.Request) (agentin2 rpcMsgIn2, out rpcMsgOut, err error) {
 	conn, err := m.getConnection()
 	if err != nil {
 		return agentin2, out, fmt.Errorf("unable to get connection : %s", err)
@@ -264,8 +264,8 @@ func (m *Module) AgentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 	return agentin2, out, nil
 }
 
-// AgentPostRequest makes a postrequest RPC call to the agent
-func (m *Module) AgentPostRequest(req *http.Request, agentResponse int32,
+// agentPostRequest makes a postrequest RPC call to the agent
+func (m *Module) agentPostRequest(req *http.Request, agentResponse int32,
 	code int, size int64, millis time.Duration, hout http.Header) error {
 	conn, err := m.getConnection()
 	if err != nil {
@@ -285,8 +285,8 @@ func (m *Module) AgentPostRequest(req *http.Request, agentResponse int32,
 	return err
 }
 
-// AgentUpdateRequest makes an updaterequest RPC call to the agent
-func (m *Module) AgentUpdateRequest(req *http.Request, agentin RPCMsgIn2) error {
+// agentUpdateRequest makes an updaterequest RPC call to the agent
+func (m *Module) agentUpdateRequest(req *http.Request, agentin RPCMsgIn2) error {
 	conn, err := m.getConnection()
 	if err != nil {
 		return err
@@ -314,7 +314,7 @@ func newRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur tim
 		tlsProtocol = tlstext.Version(r.TLS.Version)
 		tlsCipher = tlstext.CipherSuite(r.TLS.CipherSuite)
 	}
-	return &RPCMsgIn{
+	return &rpcMsgIn{
 		ModuleVersion:  Version,
 		ServerVersion:  runtime.Version(),
 		ServerFlavor:   "", /* not sure what should be here */

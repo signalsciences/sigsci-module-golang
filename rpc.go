@@ -1,6 +1,6 @@
 package sigsci
 
-//go:generate msgp
+//go:generate msgp -unexported
 
 import (
 	"github.com/tinylib/msgp/msgp"
@@ -10,9 +10,9 @@ import (
 // This is for messages to and from the agent
 //
 
-// RPCMsgIn is the primary message from the webserver module to the agent
+// rpcMsgIn is the primary message from the webserver module to the agent
 //
-type RPCMsgIn struct {
+type rpcMsgIn struct {
 	AccessKeyID string /* AccessKeyID optional, what Site does this belong too */
 
 	ModuleVersion string /* The module build version */
@@ -38,17 +38,17 @@ type RPCMsgIn struct {
 	PostBody       string /* empty string if none */
 }
 
-// RPCMsgOut is sent back to the webserver
+// rpcMsgOut is sent back to the webserver
 // it contains a a HTTP response code, and an optional UUID
-type RPCMsgOut struct {
+type rpcMsgOut struct {
 	WAFResponse    msgp.Number // HACK.. should be int32
 	RequestID      string      `json:",omitempty"` /* optional */
 	RequestHeaders [][2]string `json:",omitempty"` /* optional, to set additional request headers */
 }
 
-// RPCMsgIn2 is a follow-up message from the webserver to the Agent
+// rpcMsgIn2 is a follow-up message from the webserver to the Agent
 // Note there is no formal response to this message
-type RPCMsgIn2 struct {
+type rpcMsgIn2 struct {
 	RequestID      string /* the request id */
 	ResponseCode   int32  /* what http status code did the webserver send back */
 	ResponseMillis int64  /* How many milliseconds did the full request take */

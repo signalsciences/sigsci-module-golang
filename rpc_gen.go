@@ -9,7 +9,7 @@ import (
 )
 
 // DecodeMsg implements msgp.Decodable
-func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
+func (z *rpcMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
 	var isz uint32
@@ -186,7 +186,7 @@ func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
+func (z *rpcMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 21
 	// write "AccessKeyID"
 	err = en.Append(0xde, 0x0, 0x15, 0xab, 0x41, 0x63, 0x63, 0x65, 0x73, 0x73, 0x4b, 0x65, 0x79, 0x49, 0x44)
@@ -405,7 +405,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z *RPCMsgIn) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *rpcMsgIn) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 21
 	// string "AccessKeyID"
@@ -487,7 +487,7 @@ func (z *RPCMsgIn) MarshalMsg(b []byte) (o []byte, err error) {
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
+func (z *rpcMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
 	var isz uint32
@@ -664,7 +664,7 @@ func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	return
 }
 
-func (z *RPCMsgIn) Msgsize() (s int) {
+func (z *rpcMsgIn) Msgsize() (s int) {
 	s = 3 + 12 + msgp.StringPrefixSize + len(z.AccessKeyID) + 14 + msgp.StringPrefixSize + len(z.ModuleVersion) + 14 + msgp.StringPrefixSize + len(z.ServerVersion) + 13 + msgp.StringPrefixSize + len(z.ServerFlavor) + 11 + msgp.StringPrefixSize + len(z.ServerName) + 10 + msgp.Int64Size + 10 + msgp.Int64Size + 11 + msgp.StringPrefixSize + len(z.RemoteAddr) + 7 + msgp.StringPrefixSize + len(z.Method) + 7 + msgp.StringPrefixSize + len(z.Scheme) + 4 + msgp.StringPrefixSize + len(z.URI) + 9 + msgp.StringPrefixSize + len(z.Protocol) + 12 + msgp.StringPrefixSize + len(z.TLSProtocol) + 10 + msgp.StringPrefixSize + len(z.TLSCipher) + 12 + msgp.Int32Size + 13 + msgp.Int32Size + 15 + msgp.Int64Size + 13 + msgp.Int64Size + 10 + msgp.ArrayHeaderSize
 	for xvk := range z.HeadersIn {
 		s += msgp.ArrayHeaderSize
@@ -684,7 +684,7 @@ func (z *RPCMsgIn) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
-func (z *RPCMsgIn2) DecodeMsg(dc *msgp.Reader) (err error) {
+func (z *rpcMsgIn2) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
 	var isz uint32
@@ -758,7 +758,7 @@ func (z *RPCMsgIn2) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z *RPCMsgIn2) EncodeMsg(en *msgp.Writer) (err error) {
+func (z *rpcMsgIn2) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 5
 	// write "RequestID"
 	err = en.Append(0x85, 0xa9, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x44)
@@ -821,7 +821,7 @@ func (z *RPCMsgIn2) EncodeMsg(en *msgp.Writer) (err error) {
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z *RPCMsgIn2) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *rpcMsgIn2) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 5
 	// string "RequestID"
@@ -849,7 +849,7 @@ func (z *RPCMsgIn2) MarshalMsg(b []byte) (o []byte, err error) {
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *RPCMsgIn2) UnmarshalMsg(bts []byte) (o []byte, err error) {
+func (z *rpcMsgIn2) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
 	var isz uint32
@@ -923,7 +923,7 @@ func (z *RPCMsgIn2) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	return
 }
 
-func (z *RPCMsgIn2) Msgsize() (s int) {
+func (z *rpcMsgIn2) Msgsize() (s int) {
 	s = 1 + 10 + msgp.StringPrefixSize + len(z.RequestID) + 13 + msgp.Int32Size + 15 + msgp.Int64Size + 13 + msgp.Int64Size + 11 + msgp.ArrayHeaderSize
 	for ajw := range z.HeadersOut {
 		s += msgp.ArrayHeaderSize
@@ -935,7 +935,7 @@ func (z *RPCMsgIn2) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
-func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
+func (z *rpcMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
 	var isz uint32
@@ -999,7 +999,7 @@ func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
+func (z *rpcMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 3
 	// write "WAFResponse"
 	err = en.Append(0x83, 0xab, 0x57, 0x41, 0x46, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65)
@@ -1044,7 +1044,7 @@ func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z *RPCMsgOut) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *rpcMsgOut) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 3
 	// string "WAFResponse"
@@ -1069,7 +1069,7 @@ func (z *RPCMsgOut) MarshalMsg(b []byte) (o []byte, err error) {
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
+func (z *rpcMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
 	var isz uint32
@@ -1133,7 +1133,7 @@ func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	return
 }
 
-func (z *RPCMsgOut) Msgsize() (s int) {
+func (z *rpcMsgOut) Msgsize() (s int) {
 	s = 1 + 12 + z.WAFResponse.Msgsize() + 10 + msgp.StringPrefixSize + len(z.RequestID) + 15 + msgp.ArrayHeaderSize
 	for hct := range z.RequestHeaders {
 		s += msgp.ArrayHeaderSize
