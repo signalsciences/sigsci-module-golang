@@ -20,7 +20,7 @@ func TestNewRPCMsgFromRequest(t *testing.T) {
 	r.RequestURI = "http://localhost/"
 	r.TLS = &tls.ConnectionState{}
 
-	want := RPCMsgIn{
+	want := rpcMsgIn{
 		ServerName: "localhost",
 		Method:     "GET",
 		Scheme:     "https",
@@ -29,7 +29,7 @@ func TestNewRPCMsgFromRequest(t *testing.T) {
 		RemoteAddr: "127.0.0.1",
 		HeadersIn:  [][2]string{{"If-None-Match", `W/"wyzzy"`}},
 	}
-	eq := func(got, want RPCMsgIn) (ne string, equal bool) {
+	eq := func(got, want rpcMsgIn) (ne string, equal bool) {
 		switch {
 		case got.ServerName != want.ServerName:
 			return "ServerHostname", false

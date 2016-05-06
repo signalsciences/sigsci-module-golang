@@ -186,14 +186,14 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		agentin2.ResponseSize = int64(size)
 		agentin2.ResponseMillis = int64(duration / time.Millisecond)
 		agentin2.HeadersOut = filterHeaders(rr.Header())
-		if err := m.AgentUpdateRequest(req, agentin2); err != nil && m.debug {
+		if err := m.agentUpdateRequest(req, agentin2); err != nil && m.debug {
 			log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
 		}
 		return
 	}
 
 	if code >= 300 || size >= m.anomalySize || duration >= m.anomalyDuration {
-		if err := m.AgentPostRequest(req, int32(wafresponse), code, size, duration, rr.Header()); err != nil && m.debug {
+		if err := m.agentPostRequest(req, int32(wafresponse), code, size, duration, rr.Header()); err != nil && m.debug {
 			log.Printf("ERROR: 'RPC.PostRequest' request failed:%s", err.Error())
 		}
 	}
@@ -264,7 +264,7 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 rpcMsgIn2, out rpc
 		req.Header.Add(kv[0], kv[1])
 	}
 
-	agentin2 = RPCMsgIn2{
+	agentin2 = rpcMsgIn2{
 		RequestID:      out.RequestID,
 		ResponseCode:   -1,
 		ResponseMillis: -1,
@@ -296,7 +296,7 @@ func (m *Module) agentPostRequest(req *http.Request, agentResponse int32,
 }
 
 // agentUpdateRequest makes an updaterequest RPC call to the agent
-func (m *Module) agentUpdateRequest(req *http.Request, agentin RPCMsgIn2) error {
+func (m *Module) agentUpdateRequest(req *http.Request, agentin rpcMsgIn2) error {
 	conn, err := m.getConnection()
 	if err != nil {
 		return err
@@ -313,7 +313,7 @@ func (m *Module) agentUpdateRequest(req *http.Request, agentin RPCMsgIn2) error 
 
 // NewRPCMsgIn creates a agent message from a go http.Request object
 //  This is would part of a Go-lang module
-func newRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur time.Duration) *RPCMsgIn {
+func newRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur time.Duration) *rpcMsgIn {
 	// assemble an message to send to agent
 	tlsProtocol := ""
 	tlsCipher := ""
