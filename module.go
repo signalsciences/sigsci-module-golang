@@ -20,7 +20,8 @@ import (
 // Version is the semantic version of this module
 const Version = "sigsci-module-golang 1.0.0"
 
-// Module is our agent handler
+// Module is an http.Handler that wraps inbound communication and
+// sends it to the Signal Sciences Agent.
 type Module struct {
 	handler          http.Handler
 	rpcAddress       string
@@ -129,6 +130,7 @@ func ConnectionPoolSize(min, max int) func(*Module) error {
 	}
 }
 
+// ServeHTTP satifies the http.Handler interface
 func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	start := time.Now().UTC()
 
