@@ -419,11 +419,8 @@ func filterHeaders(h http.Header) [][2]string {
 	// headersin = append(headersin, [2]string{"Host", r.Host})
 
 	for key, values := range h {
-		lowerkey := strings.ToLower(key)
-		if lowerkey != "cookie" && lowerkey != "set-cookie" && lowerkey != "authorization" && lowerkey != "x-auth-token" {
-			for _, value := range values {
-				out = append(out, [2]string{key, value})
-			}
+		for _, value := range values {
+			out = append(out, [2]string{key, value})
 		}
 	}
 	return out
