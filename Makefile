@@ -1,6 +1,6 @@
 
 
-lint:
+build:
 	echo "package sigsci" > version.go
 	echo "" >> version.go
 	echo "const version = \"$(shell cat VERSION)\"" >> version.go
@@ -19,6 +19,12 @@ lint:
 		--enable=unused \
 		--exclude=_gen.go \
 		.
+
+# not clear on vendoring in a library
+# for now add a step for jenkins to load it in
+init:
+	go get -u .
+
 generate:
 	go generate ./...
 

@@ -17,7 +17,8 @@ PKG_NAME="sigsci-module-golang"
 DST_BUCKET="s3://package-build-artifacts/${PKG_NAME}/${BUILD_NUMBER}"
 VERSION=$(cat ./VERSION)
 
-make
+make init
+make build
 make release
 
 cd ${BASE}
