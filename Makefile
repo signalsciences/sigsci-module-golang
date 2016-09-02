@@ -6,6 +6,8 @@ build:
 	echo "const version = \"$(shell cat VERSION)\"" >> version.go
 	go build .
 	go test .
+	go get -u gometalinter
+	gometalinter --install
 	gometalinter \
 		--vendor \
 		--deadline=60s \
