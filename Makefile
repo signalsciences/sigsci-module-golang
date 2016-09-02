@@ -19,8 +19,7 @@ lint:
 		--enable=unused \
 		--exclude=_gen.go \
 		.
-
-rpc_gen.go: rpc.go
+generate:
 	go generate ./...
 
 clean:
