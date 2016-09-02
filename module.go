@@ -58,6 +58,11 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 	return &m, nil
 }
 
+// Version returns a SemVer version string
+func Version() string {
+	return version
+}
+
 // Debug turns on debug logging
 func Debug() func(*Module) error {
 	return func(m *Module) error {
@@ -308,6 +313,8 @@ func (m *Module) agentUpdateRequest(req *http.Request, agentin rpcMsgIn2) error 
 	return err
 }
 
+const moduleVersion = "sigsci-module-golang " + version
+
 // NewRPCMsgIn creates a agent message from a go http.Request object
 //  This is would part of a Go-lang module
 func newRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur time.Duration) *rpcMsgIn {
@@ -322,7 +329,7 @@ func newRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur tim
 		tlsCipher = tlstext.CipherSuite(r.TLS.CipherSuite)
 	}
 	return &rpcMsgIn{
-		ModuleVersion:  Version,
+		ModuleVersion:  moduleVersion,
 		ServerVersion:  runtime.Version(),
 		ServerFlavor:   "", /* not sure what should be here */
 		ServerName:     r.Host,

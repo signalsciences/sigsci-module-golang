@@ -2,11 +2,22 @@
 
 lint:
 	echo "package sigsci" > version.go
-	echo "const Version = \"sigsci-module-golang $(shell cat VERSION)\"" >> version.go
+	echo "" >> version.go
+	echo "const version = \"$(shell cat VERSION)\"" >> version.go
 	go build .
-	golint clientcodec.go module.go module_test.go rpc.go
-	gofmt -w -s *.go
-	goimports -w *.go
+	gometalinter \
+		--vendor \
+		--deadline=60s \
+		--disable-all \
+		--enable=vetshadow \
+		--enable=ineffassign \
+		--enable=deadcode \
+		--enable=golint \
+		--enable=gofmt \
+		--enable=gosimple \
+		--enable=unused \
+		--exclude=_gen.go \
+		.
 
 rpc_gen.go: rpc.go
 	go generate ./...
