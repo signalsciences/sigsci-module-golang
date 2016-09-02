@@ -23,8 +23,8 @@ generate:
 	go generate ./...
 
 clean:
+	rm -rf artifacts
 	go clean ./...
-	rm -fr sigsci-module-golang sigsci-module-golang.tar.gz
 	git gc
 
 release:
