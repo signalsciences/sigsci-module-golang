@@ -405,9 +405,7 @@ func readPost(req *http.Request, m *Module) bool {
 	return false
 }
 
-//
-// WARNING -- filterheaders will be removed, as functionality will move to agent
-//
+// converts a http.Header map to a [][2]string
 func filterHeaders(h http.Header) [][2]string {
 	// get headers
 	out := make([][2]string, 0, len(h)+1)
