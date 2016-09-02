@@ -23,7 +23,7 @@ build:
 # not clear on vendoring in a library
 # for now add a step for jenkins to load it in
 init:
-	go get -u .
+	go get .
 
 generate:
 	go generate ./...
