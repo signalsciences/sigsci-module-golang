@@ -5,6 +5,7 @@ lint:
 	echo "" >> version.go
 	echo "const version = \"$(shell cat VERSION)\"" >> version.go
 	go build .
+	go test .
 	gometalinter \
 		--vendor \
 		--deadline=60s \
@@ -21,10 +22,6 @@ lint:
 
 rpc_gen.go: rpc.go
 	go generate ./...
-
-test:
-	go build ./...
-	go test ./...
 
 clean:
 	go clean ./...
