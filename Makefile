@@ -6,8 +6,6 @@ build:
 	echo "const version = \"$(shell cat VERSION)\"" >> version.go
 	go build .
 	go test .
-	go get -u gometalinter
-	gometalinter --install
 	gometalinter \
 		--vendor \
 		--deadline=60s \
@@ -25,6 +23,8 @@ build:
 # not clear on vendoring in a library
 # for now add a step for jenkins to load it in
 init:
+	go get -u github.com/alecthomas/gometalinter
+	gometalinter --install
 	go get .
 
 generate:
