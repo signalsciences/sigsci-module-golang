@@ -6,6 +6,10 @@ if [ -z "${BUILD_NUMBER}" ]; then
 fi
 
 set -ex
+export GOPATH=$WORKSPACE
+export GOROOT="/opt/go"
+export PATH="/opt/go/bin:$WORKSPACE/bin:/opt/local/bin:$PATH"
+
 
 BASE=$PWD
 ## setup our package properties by distro
