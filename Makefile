@@ -31,5 +31,11 @@ clean:
 release:
 	rm -rf sigsci-module-golang
 	mkdir sigsci-module-golang
-	cp -rf clientcodec.go rpc.go rpc_gen.go module.go clientcodec.go examples sigsci-module-golang/
+	cp -rf \
+		VERSION CHANGELOG.md LICENSE.md README.md \
+		clientcodec.go rpc.go rpc_gen.go module.go version.go \
+		module_test.go rpc_gen_test.go \
+		examples \
+		sigsci-module-golang/
+
 	tar -czvf sigsci-module-golang.tar.gz sigsci-module-golang
