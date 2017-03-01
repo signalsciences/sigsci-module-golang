@@ -21,6 +21,7 @@ import (
 // sends it to the Signal Sciences Agent.
 type Module struct {
 	handler          http.Handler
+	rpcNetwork       string
 	rpcAddress       string
 	pool             pool.Pool
 	debug            bool
@@ -37,7 +38,8 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 	// you over-ride them by passing in function arguments
 	m := Module{
 		handler:          h,
-		rpcAddress:       "unix:/var/run/sigsci.sock",
+		rpcNetwork:       "unix",
+		rpcAddress:       "/var/run/sigsci.sock",
 		debug:            false,
 		pool:             nil,
 		timeout:          100 * time.Millisecond,
@@ -72,9 +74,18 @@ func Debug() func(*Module) error {
 }
 
 // Socket is a function argument to set where send data to the agent
-func Socket(address string) func(*Module) error {
+func Socket(network, address string) func(*Module) error {
 	return func(m *Module) error {
+		m.rpcNetwork = network
 		m.rpcAddress = address
+
+		if network != "tcp" && network != "unix" {
+			return fmt.Errorf("Network must be 'tcp' or 'unix', got %q", network)
+		}
+
+		// TODO: check that if TCP, address is an ip/port
+		// TODO: check if UNXI, then address is a path
+
 		return nil
 	}
 }
@@ -205,7 +216,7 @@ func (m *Module) makeConnection() (net.Conn, error) {
 	if m.debug {
 		log.Printf("Making a new RPC connection.")
 	}
-	conn, err := net.DialTimeout("unix", m.rpcAddress, m.timeout)
+	conn, err := net.DialTimeout(m.rpcNetwork, m.rpcAddress, m.timeout)
 	if err != nil {
 		return nil, err
 	}
