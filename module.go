@@ -33,6 +33,8 @@ type Module struct {
 }
 
 // NewModule wraps an http.Handler use the Signal Sciences Agent
+// Configuration is based on 'functional options' as mentioned in:
+// https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
 func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) {
 	// the following are the defaults
 	// you over-ride them by passing in function arguments
@@ -51,12 +53,15 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 			"CONNECT": true,
 		},
 	}
+
+	// override defaults from function args
 	for _, opt := range options {
 		err := opt(&m)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	return &m, nil
 }
 
@@ -84,7 +89,7 @@ func Socket(network, address string) func(*Module) error {
 		}
 
 		// TODO: check that if TCP, address is an ip/port
-		// TODO: check if UNXI, then address is a path
+		// TODO: check if UNIX (Domain Socket), then address is a path
 
 		return nil
 	}
@@ -239,7 +244,9 @@ func (m *Module) getConnection() (net.Conn, error) {
 }
 
 // agentPreRequest makes a prerequest RPC call to the agent
-func (m *Module) agentPreRequest(req *http.Request) (agentin2 rpcMsgIn2, out rpcMsgOut, err error) {
+// In general this is never to be used by end-users and is
+// only exposed for use in performance testing
+func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPCMsgOut, err error) {
 	conn, err := m.getConnection()
 	if err != nil {
 		return agentin2, out, fmt.Errorf("unable to get connection : %s", err)
@@ -254,13 +261,28 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 rpcMsgIn2, out rpc
 
 	postbody := ""
 	if readPost(req, m) {
+		// Read all of it and close
+		// if error, just keep going
+		// It's possible that is is error event
+		// but not sure what it is.  Likely
+		// the client disconnected.
 		buf, _ := ioutil.ReadAll(req.Body)
-		reader := ioutil.NopCloser(bytes.NewBuffer(buf))
-		postbody = string(buf)
 		req.Body.Close()
-		req.Body = reader
+
+		// save a copy
+		postbody = string(buf)
+
+		// make a new reader so the next handler
+		// can still read the post normally as if
+		// nothing happened
+		req.Body = ioutil.NopCloser(bytes.NewBuffer(buf))
 	}
-	agentin := newRPCMsgIn(req, postbody, -1, -1, -1)
+
+	// TODO: we make a full copy of the postbody, but it would
+	//  appear we don't really need to do this as it's going to be
+	//  encoded before.  Can we change NewRPCMsgIn to accept a []byte?
+	//
+	agentin := NewRPCMsgIn(req, postbody, -1, -1, -1)
 	err = client.Call("RPC.PreRequest", agentin, &out)
 	if err != nil {
 		return agentin2, out, fmt.Errorf("unable to make RPC.PreRequest call: %s", err)
@@ -277,7 +299,7 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 rpcMsgIn2, out rpc
 		req.Header.Add(kv[0], kv[1])
 	}
 
-	agentin2 = rpcMsgIn2{
+	agentin2 = RPCMsgIn2{
 		RequestID:      out.RequestID,
 		ResponseCode:   -1,
 		ResponseMillis: -1,
@@ -300,7 +322,7 @@ func (m *Module) agentPostRequest(req *http.Request, agentResponse int32,
 	defer client.Close()
 
 	// Create message to agent from the input request
-	agentin := newRPCMsgIn(req, "", code, size, millis)
+	agentin := NewRPCMsgIn(req, "", code, size, millis)
 	agentin.WAFResponse = agentResponse
 	agentin.HeadersOut = filterHeaders(hout)
 	var out int
@@ -309,7 +331,7 @@ func (m *Module) agentPostRequest(req *http.Request, agentResponse int32,
 }
 
 // agentUpdateRequest makes an updaterequest RPC call to the agent
-func (m *Module) agentUpdateRequest(req *http.Request, agentin rpcMsgIn2) error {
+func (m *Module) agentUpdateRequest(req *http.Request, agentin RPCMsgIn2) error {
 	conn, err := m.getConnection()
 	if err != nil {
 		return err
@@ -327,8 +349,9 @@ func (m *Module) agentUpdateRequest(req *http.Request, agentin rpcMsgIn2) error 
 const moduleVersion = "sigsci-module-golang " + version
 
 // NewRPCMsgIn creates a agent message from a go http.Request object
-//  This is would part of a Go-lang module
-func newRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur time.Duration) *rpcMsgIn {
+// End-users of the golang module never need to use this
+// directly and it is only exposed for performance testing
+func NewRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur time.Duration) *RPCMsgIn {
 	// assemble an message to send to agent
 	tlsProtocol := ""
 	tlsCipher := ""
@@ -339,7 +362,7 @@ func newRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur tim
 		tlsProtocol = tlstext.Version(r.TLS.Version)
 		tlsCipher = tlstext.CipherSuite(r.TLS.CipherSuite)
 	}
-	return &rpcMsgIn{
+	return &RPCMsgIn{
 		ModuleVersion:  moduleVersion,
 		ServerVersion:  runtime.Version(),
 		ServerFlavor:   "", /* not sure what should be here */
