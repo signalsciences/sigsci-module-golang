@@ -247,14 +247,13 @@ func (m *Module) getConnection() (net.Conn, error) {
 // In general this is never to be used by end-users and is
 // only exposed for use in performance testing
 func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPCMsgOut, err error) {
+	// if we can't get a connection, then we should not
+	// do any work.  Maybe agent is down
+	// TODO: does getConnection actually open a connection?
 	conn, err := m.getConnection()
 	if err != nil {
 		return agentin2, out, fmt.Errorf("unable to get connection : %s", err)
 	}
-
-	rpcCodec := newMsgpClientCodec(conn)
-	client := rpc.NewClientWithCodec(rpcCodec)
-	defer client.Close()
 
 	// Create message to agent from the input request
 	// see if we can read-in the post body
@@ -283,7 +282,12 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 	//  encoded before.  Can we change NewRPCMsgIn to accept a []byte?
 	//
 	agentin := NewRPCMsgIn(req, postbody, -1, -1, -1)
+
+	rpcCodec := newMsgpClientCodec(conn)
+	client := rpc.NewClientWithCodec(rpcCodec)
+
 	err = client.Call("RPC.PreRequest", agentin, &out)
+	client.Close()
 	if err != nil {
 		return agentin2, out, fmt.Errorf("unable to make RPC.PreRequest call: %s", err)
 	}
@@ -317,16 +321,16 @@ func (m *Module) agentPostRequest(req *http.Request, agentResponse int32,
 		return err
 	}
 
-	rpcCodec := newMsgpClientCodec(conn)
-	client := rpc.NewClientWithCodec(rpcCodec)
-	defer client.Close()
-
 	// Create message to agent from the input request
 	agentin := NewRPCMsgIn(req, "", code, size, millis)
 	agentin.WAFResponse = agentResponse
 	agentin.HeadersOut = filterHeaders(hout)
+
+	rpcCodec := newMsgpClientCodec(conn)
+	client := rpc.NewClientWithCodec(rpcCodec)
 	var out int
 	err = client.Call("RPC.PostRequest", agentin, &out)
+	client.Close()
 	return err
 }
 
@@ -339,10 +343,10 @@ func (m *Module) agentUpdateRequest(req *http.Request, agentin RPCMsgIn2) error 
 
 	rpcCodec := newMsgpClientCodec(conn)
 	client := rpc.NewClientWithCodec(rpcCodec)
-	defer client.Close()
 
 	var out int
 	err = client.Call("RPC.UpdateRequest", &agentin, &out)
+	client.Close()
 	return err
 }
 
