@@ -43,7 +43,7 @@ release:
 	cp -rf \
 		VERSION CHANGELOG.md LICENSE.md README.md \
 		clientcodec.go rpc.go rpc_gen.go module.go version.go \
-		module_test.go rpc_gen_test.go \
+		module_test.go \
 		examples \
 		artifacts/sigsci-module-golang/
 	(cd artifacts; tar -czvf sigsci-module-golang.tar.gz sigsci-module-golang)
