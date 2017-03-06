@@ -3,8 +3,9 @@
 ## 1.2.0 2017-03-06
 
 * Minor performance improvements
-* Expose internal datastructures for aid in alternative
-  module implimentations
+* Expose internal datastructures and methods for
+  to allow alternative module implementations and
+  performance tests.
 
 ## 1.1.0 2017-02-28
 
