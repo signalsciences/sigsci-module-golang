@@ -243,6 +243,21 @@ func (m *Module) getConnection() (net.Conn, error) {
 	return m.makeConnection()
 }
 
+// SendRawPreRequest sends a preformatted RPCMsgIn to the agent
+// End-users never need to use this function is expose for
+// performance testing
+func (m *Module) SendRawPreRequest(msg *RPCMsgIn) (out RPCMsgOut, err error) {
+	conn, err := m.getConnection()
+	if err != nil {
+		return out, err
+	}
+	rpcCodec := newMsgpClientCodec(conn)
+	client := rpc.NewClientWithCodec(rpcCodec)
+	err = client.Call("RPC.PreRequest", msg, &out)
+	client.Close()
+	return out, err
+}
+
 // agentPreRequest makes a prerequest RPC call to the agent
 // In general this is never to be used by end-users and is
 // only exposed for use in performance testing
