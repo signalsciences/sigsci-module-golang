@@ -63,3 +63,30 @@ func TestStripPort(t *testing.T) {
 		t.Errorf("StripPort(%q) = %q, want %q", "127.0.0.1:8000", got, "127.0.0.1")
 	}
 }
+
+func TestCheckContentType(t *testing.T) {
+	cases := []struct {
+		want    bool
+		content string
+	}{
+		{true, "application/x-www-form-urlencoded"},
+		{true, "application/x-www-form-urlencoded; charset=UTF-8"},
+		{true, "text/xml"},
+		{true, "application/xml"},
+		{true, "application/json"},
+		{true, "application/x-javascript"},
+		{true, "text/javascript"},
+		{true, "text/x-javascript"},
+		{true, "text/x-json"},
+		{true, "application/javascript"},
+		{false, "octet/stream"},
+		{false, "junk/yard"},
+	}
+
+	for pos, tt := range cases {
+		got := checkContentType(tt.content)
+		if got != tt.want {
+			t.Errorf("[%d] case %q expected %v got %v", pos, tt.want, got)
+		}
+	}
+}

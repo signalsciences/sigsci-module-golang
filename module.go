@@ -449,16 +449,28 @@ func readPost(req *http.Request, m *Module) bool {
 	}
 
 	// only read certain types of content
-	contentType := req.Header.Get("Content-Type")
-	if contentType == "application/x-www-form-urlencoded" {
+	return checkContentType(req.Header.Get("Content-Type"))
+}
+
+func checkContentType(s string) bool {
+	s = strings.ToLower(s)
+	if strings.HasPrefix(s, "application/x-www-form-urlencoded") {
 		return true
 	}
 
-	if strings.Contains(contentType, "json") {
+	if strings.Contains(s, "json") {
 		return true
 	}
 
-	if strings.Contains(contentType, "javascript") {
+	if strings.Contains(s, "javascript") {
+		return true
+	}
+
+	if strings.HasSuffix(s, "/xml") {
+		return true
+	}
+
+	if strings.HasSuffix(s, "+xml") {
 		return true
 	}
 
