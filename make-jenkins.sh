@@ -18,6 +18,7 @@ DST_BUCKET="s3://package-build-artifacts/${PKG_NAME}/${BUILD_NUMBER}"
 VERSION=$(cat ./VERSION)
 
 # make init
+go get -u .
 make build
 make release
 
