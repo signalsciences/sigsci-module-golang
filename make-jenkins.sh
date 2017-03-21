@@ -20,6 +20,7 @@ VERSION=$(cat ./VERSION)
 # make init
 go get -u github.com/client9/tlstext
 go get -u gopkg.in/fatih/pool.v2
+go get -u github.com/tinylib/msgp/msgp
 
 make build
 make release
