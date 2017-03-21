@@ -1,5 +1,10 @@
 # GoLang Module Release Notes
 
+## 1.2.1 2017-03-21
+
+* Send XML post bodies to agent
+* Better content-type processing
+
 ## 1.2.0 2017-03-06
 
 * Minor performance improvements
