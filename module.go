@@ -32,9 +32,13 @@ type Module struct {
 	maxContentLength int64
 	ignoredMethods   map[string]bool
 
+	// Above minBodyThreshold the module will send the request minus body to the agent for inspection.
+	// Async the request + body will be inspected - NOTE: The module is in passive mode aka not blocking.
 	minBodyThreshold int64
+	// Above maxBodyThreshold the module will send the request minus body to the agent for inspection.
 	maxBodyThreshold int64
-	asyncTimeout     time.Duration
+	// asyncTimeout the timeout for the async calls
+	asyncTimeout time.Duration
 }
 
 // NewModule wraps an http.Handler use the Signal Sciences Agent
@@ -215,14 +219,15 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			// NOTE This does not try to block - for most app servers it's not possible to change
 			// http status code, body, etc.  Once control is handed off to the app, the module is
 			// passive and can only log data for further decisions.
-			// If we really wanted to explore blocking (would be messy and a lot of details for each impl), we'd do something like:
+			// If we really wanted to explore blocking (would be messy and a lot of details for
+			// each impl), we'd do something like:
 
-			//			fakeReq := httptest.NewRecorder()
-			//			m.handler.ServeHTTP(rr, fakeReq)
+			//			fakeRes := httptest.NewRecorder()
+			//			m.handler.ServeHTTP(fakeRes, req)
 			//			if out.WAFResponse.Int() == 406 {
 			//				block
 			//			} else {
-			//				copy(fakeReq, req)
+			//				copy(fakeRes, rr)
 			//			}
 
 		} else {
