@@ -188,6 +188,15 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// If the agent has an 'ID' then make a sync callback - this is debatable
+	// as the agent could take a long time.
+	if asyncAgentIn != nil && agentin2.RequestID != "" {
+		out, err = m.callRPCPre(asyncAgentIn, m.asyncTimeout)
+		if out.RequestID != "" {
+			agentin2.RequestID = out.RequestID
+		}
+		asyncAgentIn = nil
+	}
 	// NOTE: according to net/http docs, if WriteHeader is not called explicitly,
 	// the first call to Write will trigger an implicit WriteHeader(http.StatusOK).
 	// this is why the default code is 200 and it only changes if WriteHeader is called.
