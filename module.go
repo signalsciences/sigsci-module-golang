@@ -228,16 +228,6 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			// NOTE This does not try to block - for most app servers it's not possible to change
 			// http status code, body, etc.  Once control is handed off to the app, the module is
 			// passive and can only log data for further decisions.
-			// If we really wanted to explore blocking (would be messy and a lot of details for
-			// each impl), we'd do something like:
-
-			//			fakeRes := httptest.NewRecorder()
-			//			m.handler.ServeHTTP(fakeRes, req)
-			//			if out.WAFResponse.Int() == 406 {
-			//				block
-			//			} else {
-			//				copy(fakeRes, rr)
-			//			}
 
 		} else {
 			// continue with normal request
@@ -393,6 +383,10 @@ func (m *Module) agentPreRequest(req *http.Request) (asyncAgentIn *RPCMsgIn, age
 
 	if asyncPostBodyCopy != "" {
 		asyncAgentIn = NewRPCMsgIn(req, asyncPostBodyCopy, -1, -1, -1)
+		// If an id was provided reuse the id
+		if out.RequestID != "" {
+			asyncAgentIn.RequestID = out.RequestID
+		}
 	}
 	return asyncAgentIn, agentin2, out, nil
 }
