@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/client9/tlstext"
+	"github.com/signalsciences/tlstext"
 	pool "gopkg.in/fatih/pool.v2"
 )
 

@@ -1,5 +1,9 @@
 # GoLang Module Release Notes
 
+## 1.2.2 2017-07-02
+
+* Update to use [signalsciences/tlstext](https://github.com/signalsciences/tlstext)
+
 ## 1.2.1 2017-03-21
 
 * Send XML post bodies to agent

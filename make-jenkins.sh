@@ -18,7 +18,7 @@ DST_BUCKET="s3://package-build-artifacts/${PKG_NAME}/${BUILD_NUMBER}"
 VERSION=$(cat ./VERSION)
 
 # make init
-go get -u github.com/client9/tlstext
+go get -u github.com/signalsciences/tlstext
 go get -u gopkg.in/fatih/pool.v2
 go get -u github.com/tinylib/msgp/msgp
 
