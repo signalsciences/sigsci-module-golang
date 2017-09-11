@@ -55,8 +55,8 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 		pool:             nil,
 		timeout:          100 * time.Millisecond,
 		anomalySize:      512 * 1024,
-		anomalyDuration:  2 * time.Second,
-		maxContentLength: 300000,
+		anomalyDuration:  1 * time.Second,
+		maxContentLength: 100000,
 		ignoredMethods: map[string]bool{
 			"OPTIONS": true,
 			"CONNECT": true,
