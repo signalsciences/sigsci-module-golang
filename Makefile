@@ -36,6 +36,7 @@ generate:
 
 clean:
 	rm -rf artifacts
+	rm -f *.log
 	go clean ./...
 	git gc
 
