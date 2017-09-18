@@ -1,0 +1,33 @@
+version: "3"
+networks:
+  test-golang:
+
+services:
+  # this defines our webserver uses our sigsci-module
+  # we only define it so it is attached to our fake network
+  # it will be run a few times with different options manually
+  #
+  #
+  web:
+    build: .
+    networks:
+      - test-golang
+    environment:
+      - FRAMEWORK=native
+    command: [ "go", "run", "/go/src/github.com/signalsciences/sigsci-module-golang/examples/mtest/main.go" ]
+
+  # agent
+  agent:
+    image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/sigsci-agent:latest
+    command: [ "-rpc-address", "9090", "-debug-rpc-test-harness", "-debug-standalone", "3" ]
+    networks:
+      - test-golang
+
+  # mtest
+  # we define the module-tester but don't start it (via command: /bin/true)
+  #
+  mtest:
+    image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/module-testing:latest
+    networks:
+      - test-golang
+    command: [ "/bin/true" ]
