@@ -12,6 +12,8 @@ services:
     build: .
     networks:
       - test-golang
+    volumes:
+      - ./:/go/src/github.sigsci.in/engineering/sigsci-module-golang
     environment:
       - DELAY_MILLISECOND=500
     command: [ "go", "run", "/go/src/github.sigsci.in/engineering/sigsci-module-golang/examples/mtest/main.go" ]

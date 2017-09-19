@@ -1,8 +1,12 @@
 #!/bin/sh
-set -x
+set -xe
 rm -f *.log
 docker-compose build
 docker-compose pull
+
+docker-compose run \
+	--entrypoint ./scripts/build.sh web
+
 docker-compose up --no-color -d
 
 docker-compose run \

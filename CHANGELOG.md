@@ -3,6 +3,7 @@
 ## 1.3.0 2017-09-19
 
 * Improved internal testing
+* Updated msgpack serialization
 
 ## 1.2.3 2017-09-11
 

@@ -6,24 +6,13 @@ if [ -z "${BUILD_NUMBER}" ]; then
 fi
 
 set -ex
-export GOPATH=$WORKSPACE
-export GOROOT="/opt/go"
-export PATH="/opt/go/bin:$WORKSPACE/bin:/opt/local/bin:$PATH"
-
-
 BASE=$PWD
 ## setup our package properties by distro
 PKG_NAME="sigsci-module-golang"
 DST_BUCKET="s3://package-build-artifacts/${PKG_NAME}/${BUILD_NUMBER}"
 VERSION=$(cat ./VERSION)
 
-# make init
-go get -u github.com/signalsciences/tlstext
-go get -u gopkg.in/fatih/pool.v2
-go get -u github.com/tinylib/msgp/msgp
-
-make build
-make release
+./scripts/test.sh
 
 cd ${BASE}
 aws s3 cp \
