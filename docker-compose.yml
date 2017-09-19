@@ -13,8 +13,8 @@ services:
     networks:
       - test-golang
     environment:
-      - FRAMEWORK=native
-    command: [ "go", "run", "/go/src/github.com/signalsciences/sigsci-module-golang/examples/mtest/main.go" ]
+      - DELAY_MILLISECOND=500
+    command: [ "go", "run", "/go/src/github.sigsci.in/engineering/sigsci-module-golang/examples/mtest/main.go" ]
 
   # agent
   agent:

@@ -9,7 +9,7 @@ RUN /bin/true \
     && gometalinter --install 
 
 # why copy this in when we can just mount it?
-RUN mkdir -p /go/src/github.com/signalsciences/sigsci-module-golang/examples/mtest
-WORKDIR /go/src/github.com/signalsciences/sigsci-module-golang
+RUN mkdir -p /go/src/github.sigsci.in/engineering/sigsci-module-golang/examples/mtest
+WORKDIR /go/src/github.sigsci.in/engineering/sigsci-module-golang
 COPY VERSION CHANGELOG.md LICENSE.md README.md clientcodec.go rpc.go rpc_gen.go module.go version.go module_test.go ./
 COPY examples/mtest/main.go ./examples/mtest
