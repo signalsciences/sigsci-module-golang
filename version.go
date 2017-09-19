@@ -1,3 +1,3 @@
 package sigsci
 
-const version = "1.2.3"
+const version = "1.3.0"

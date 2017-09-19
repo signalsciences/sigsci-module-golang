@@ -1,8 +1,13 @@
 # GoLang Module Release Notes
 
+## 1.3.0 2017-09-19
+
+* Improved internal testing
+
 ## 1.2.3 2017-09-11
 
 * Standardize defaults across modules and document
+* Bad release
 
 ## 1.2.2 2017-07-02
 
