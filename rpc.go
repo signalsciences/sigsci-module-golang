@@ -13,7 +13,6 @@ import (
 // RPCMsgIn is the primary message from the webserver module to the agent
 //
 type RPCMsgIn struct {
-	RequestID   string /* RequestID optional, the request id (must be uuid (bson) format, one will be generated if not provided */
 	AccessKeyID string /* AccessKeyID optional, what Site does this belong too */
 
 	ModuleVersion string /* The module build version */

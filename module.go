@@ -11,7 +11,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/signalsciences/tlstext"
@@ -31,14 +30,6 @@ type Module struct {
 	anomalyDuration  time.Duration
 	maxContentLength int64
 	ignoredMethods   map[string]bool
-
-	// Above minBodyThreshold the module will send the request minus body to the agent for inspection.
-	// Async the request + body will be inspected - NOTE: The module is in passive mode aka not blocking.
-	minBodyThreshold int64
-	// Above maxBodyThreshold the module will send the request minus body to the agent for inspection.
-	maxBodyThreshold int64
-	// asyncTimeout the timeout for the async calls
-	asyncTimeout time.Duration
 }
 
 // NewModule wraps an http.Handler use the Signal Sciences Agent
@@ -61,9 +52,6 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 			"OPTIONS": true,
 			"CONNECT": true,
 		},
-		minBodyThreshold: 1024,
-		maxBodyThreshold: 1024 * 1024,
-		asyncTimeout:     1000 * time.Millisecond,
 	}
 
 	// override defaults from function args
@@ -178,7 +166,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	asyncAgentIn, agentin2, out, err := m.agentPreRequest(req)
+	agentin2, out, err := m.agentPreRequest(req)
 	if err != nil {
 		// Fail open
 		if m.debug {
@@ -188,15 +176,6 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// If the agent has an 'ID' then make a sync callback - this is debatable
-	// as the agent could take a long time.
-	if asyncAgentIn != nil && agentin2.RequestID != "" {
-		out, err = m.callRPCPre(asyncAgentIn, m.asyncTimeout)
-		if out.RequestID != "" {
-			agentin2.RequestID = out.RequestID
-		}
-		asyncAgentIn = nil
-	}
 	// NOTE: according to net/http docs, if WriteHeader is not called explicitly,
 	// the first call to Write will trigger an implicit WriteHeader(http.StatusOK).
 	// this is why the default code is 200 and it only changes if WriteHeader is called.
@@ -207,32 +186,8 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	case 406:
 		http.Error(rr, "you lose", int(wafresponse))
 	case 200:
-		if asyncAgentIn != nil {
-			var wg sync.WaitGroup
-			wg.Add(1)
-			go func() {
-				out, err = m.callRPCPre(asyncAgentIn, m.asyncTimeout)
-				if out.RequestID != "" {
-					agentin2.RequestID = out.RequestID
-				}
-				wg.Done()
-				if err != nil {
-					log.Println("Error pushing async prerequest to agent: ", err.Error())
-				}
-				// NOTE: The extra meta data (e.g. post body copy) is kept in memory release it
-				asyncAgentIn = nil
-			}()
-			// continue with normal request
-			m.handler.ServeHTTP(rr, req)
-			wg.Wait()
-			// NOTE This does not try to block - for most app servers it's not possible to change
-			// http status code, body, etc.  Once control is handed off to the app, the module is
-			// passive and can only log data for further decisions.
-
-		} else {
-			// continue with normal request
-			m.handler.ServeHTTP(rr, req)
-		}
+		// continue with normal request
+		m.handler.ServeHTTP(rr, req)
 	default:
 		log.Printf("ERROR: Received invalid response code from agent: %d", wafresponse)
 		// continue with normal request
@@ -306,13 +261,13 @@ func (m *Module) SendRawPreRequest(msg *RPCMsgIn) (out RPCMsgOut, err error) {
 // agentPreRequest makes a prerequest RPC call to the agent
 // In general this is never to be used by end-users and is
 // only exposed for use in performance testing
-func (m *Module) agentPreRequest(req *http.Request) (asyncAgentIn *RPCMsgIn, agentin2 RPCMsgIn2, out RPCMsgOut, err error) {
+func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPCMsgOut, err error) {
 	// if we can't get a connection, then we should not
 	// do any work.  Maybe agent is down
 	// TODO: does getConnection actually open a connection?
 	conn, err := m.getConnection()
 	if err != nil {
-		return nil, agentin2, out, fmt.Errorf("unable to get connection : %s", err)
+		return agentin2, out, fmt.Errorf("unable to get connection : %s", err)
 	}
 
 	// Create message to agent from the input request
@@ -337,17 +292,6 @@ func (m *Module) agentPreRequest(req *http.Request) (asyncAgentIn *RPCMsgIn, age
 		req.Body = ioutil.NopCloser(bytes.NewBuffer(buf))
 	}
 
-	// If the post body is larger than our max - throw it away
-	if int64(len(postbody)) > m.maxBodyThreshold {
-		postbody = ""
-	}
-	asyncPostBodyCopy := ""
-	// If the post body is larger than our max - throw it away
-	if int64(len(postbody)) > m.minBodyThreshold {
-		asyncPostBodyCopy = postbody
-		postbody = ""
-	}
-
 	// TODO: we make a full copy of the postbody, but it would
 	//  appear we don't really need to do this as it's going to be
 	//  encoded before.  Can we change NewRPCMsgIn to accept a []byte?
@@ -360,7 +304,7 @@ func (m *Module) agentPreRequest(req *http.Request) (asyncAgentIn *RPCMsgIn, age
 	err = client.Call("RPC.PreRequest", agentin, &out)
 	client.Close()
 	if err != nil {
-		return nil, agentin2, out, fmt.Errorf("unable to make RPC.PreRequest call: %s", err)
+		return agentin2, out, fmt.Errorf("unable to make RPC.PreRequest call: %s", err)
 	}
 
 	// set any request headers
@@ -381,37 +325,7 @@ func (m *Module) agentPreRequest(req *http.Request) (asyncAgentIn *RPCMsgIn, age
 		ResponseSize:   -1,
 	}
 
-	if asyncPostBodyCopy != "" {
-		asyncAgentIn = NewRPCMsgIn(req, asyncPostBodyCopy, -1, -1, -1)
-		// If an id was provided reuse the id
-		if out.RequestID != "" {
-			asyncAgentIn.RequestID = out.RequestID
-		}
-	}
-	return asyncAgentIn, agentin2, out, nil
-}
-
-// callRPCPre returns the agent RPCMsgOut
-// TODO async vs normal might have different timeouts
-func (m *Module) callRPCPre(agentin *RPCMsgIn, timeout time.Duration) (out RPCMsgOut, err error) {
-	// if we can't get a connection, then we should not
-	// do any work.  Maybe agent is down
-	// TODO: does getConnection actually open a connection?
-	conn, err := m.getConnection()
-	if err != nil {
-		return out, fmt.Errorf("unable to get connection : %s", err)
-	}
-	conn.SetDeadline(time.Now().Add(timeout))
-
-	rpcCodec := newMsgpClientCodec(conn)
-	client := rpc.NewClientWithCodec(rpcCodec)
-
-	err = client.Call("RPC.PreRequest", agentin, &out)
-	client.Close()
-	if err != nil {
-		return out, fmt.Errorf("unable to make RPC.PreRequest call: %s", err)
-	}
-	return out, nil
+	return agentin2, out, nil
 }
 
 // agentPostRequest makes a postrequest RPC call to the agent
