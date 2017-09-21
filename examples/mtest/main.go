@@ -62,7 +62,7 @@ func main() {
 
 	h, err := sigsci.NewModule(mux,
 		sigsci.Socket("tcp", "agent:9090"),
-		sigsci.Timeout(150*time.Millisecond),
+		sigsci.Timeout(1000*time.Millisecond),
 	)
 	if err != nil {
 		log.Fatal(err)
