@@ -3,7 +3,6 @@ FROM golang:1.9.0-alpine3.6
 RUN apk --update add git
 RUN /bin/true \
     && go get github.com/signalsciences/tlstext \
-    && go get gopkg.in/fatih/pool.v2 \
     && go get github.com/tinylib/msgp/... \
     && go get github.com/alecthomas/gometalinter \
     && gometalinter --install 
