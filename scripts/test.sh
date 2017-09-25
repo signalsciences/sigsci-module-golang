@@ -1,6 +1,9 @@
 #!/bin/sh
 set -xe
 rm -f *.log
+docker --version
+docker-compose --version
+
 docker-compose build
 docker-compose pull
 
