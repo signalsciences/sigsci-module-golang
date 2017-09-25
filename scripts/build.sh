@@ -35,5 +35,9 @@ cp -rf \
   module_test.go \
   examples \
   artifacts/sigsci-module-golang/
+
+# mtest is internal only
+rm -fr artifacts/sigsci-module-golang/examples/mtest
+
 (cd artifacts; tar -czvf sigsci-module-golang.tar.gz sigsci-module-golang)
 chmod a+rw artifacts

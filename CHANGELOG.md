@@ -1,5 +1,10 @@
 # GoLang Module Release Notes
 
+## 1.3.1 2017-09-25
+
+* Remove unused dependency
+* Remove internal testing example
+
 ## 1.3.0 2017-09-19
 
 * Improved internal testing
