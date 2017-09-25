@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/signalsciences/tlstext"
-	pool "gopkg.in/fatih/pool.v2"
 )
 
 // Module is an http.Handler that wraps inbound communication and
@@ -23,7 +22,6 @@ type Module struct {
 	handler          http.Handler
 	rpcNetwork       string
 	rpcAddress       string
-	pool             pool.Pool
 	debug            bool
 	timeout          time.Duration
 	anomalySize      int64
@@ -43,7 +41,6 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 		rpcNetwork:       "unix",
 		rpcAddress:       "/var/run/sigsci.sock",
 		debug:            false,
-		pool:             nil,
 		timeout:          100 * time.Millisecond,
 		anomalySize:      512 * 1024,
 		anomalyDuration:  1 * time.Second,
@@ -131,31 +128,6 @@ func Timeout(t time.Duration) func(*Module) error {
 	}
 }
 
-// ConnectionPoolSize sets the min and max RPC connection
-// pool size. Setting max to 0 disables pooling (the default).
-func ConnectionPoolSize(min, max int) func(*Module) error {
-	return func(m *Module) error {
-		if min < 0 || max < 0 || min > max {
-			return fmt.Errorf("invalid values for min=%d, max=%d", min, max)
-		}
-		if m.pool != nil {
-			m.pool.Close()
-		}
-		if max == 0 {
-			m.pool = nil
-			return nil
-		}
-		pool, err := pool.NewChannelPool(min, max, m.makeConnection)
-		if err != nil {
-			m.pool = nil
-			return fmt.Errorf("failed to create connection pool min=%d max=%d - %s",
-				min, max, err)
-		}
-		m.pool = pool
-		return nil
-	}
-}
-
 // ServeHTTP satisfies the http.Handler interface
 func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	start := time.Now().UTC()
@@ -230,16 +202,7 @@ func (m *Module) makeConnection() (net.Conn, error) {
 }
 
 func (m *Module) getConnection() (net.Conn, error) {
-	if m.pool != nil {
-		c, err := m.pool.Get()
-		if err == nil {
-			c.SetDeadline(time.Now().Add(m.timeout))
-			return c, err
-		}
-		log.Printf("ERROR: failed to get a RPC connection from the pool - %s", err)
-		// Fall through to non-pool method.
-	}
-
+	// here for future expansion to use pools, etc.
 	return m.makeConnection()
 }
 
