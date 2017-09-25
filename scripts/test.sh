@@ -19,7 +19,6 @@ docker-compose up --no-color -d
 
 docker-compose run \
         -e DISABLE_HTTP_OPTIONS=1 \
-        -e DISABLE_NOCOOKIE=1 \
         -e MTEST_BASEURL=web:8085 \
         -e MTEST_AGENT=agent:12345 \
 	--entrypoint /bin/wait-for mtest web:8085 -- /bin/mtest -test.v
