@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -xe
 rm -f *.log
 docker --version
