@@ -1,19 +1,20 @@
 version: "3"
 networks:
-  test-golang:
+  mtest:
 
 services:
   # this defines our webserver uses our sigsci-module
   # we only define it so it is attached to our fake network
   # it will be run a few times with different options manually
   #
-  #
+  # The volumes spec is a bit weird.. this script is run in scripts/test but
+  # needs stuff in ../../examples.  Consider moving.
   web:
     build: .
     networks:
-      - test-golang
+      - mtest
     volumes:
-      - ./:/go/src/github.sigsci.in/engineering/sigsci-module-golang
+      - ../..:/go/src/github.sigsci.in/engineering/sigsci-module-golang
     command: [ "go", "run", "/go/src/github.sigsci.in/engineering/sigsci-module-golang/examples/mtest/main.go" ]
 
   # agent
@@ -21,7 +22,7 @@ services:
     image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/sigsci-agent:latest
     command: [ "-rpc-address", "9090", "-debug-rpc-test-harness", "-debug-standalone", "3" ]
     networks:
-      - test-golang
+      - mtest
 
   # mtest
   # we define the module-tester but don't start it (via command: /bin/true)
@@ -29,5 +30,13 @@ services:
   mtest:
     image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/module-testing:latest
     networks:
-      - test-golang
-    command: [ "/bin/true" ]
+      - mtest
+    depends_on:
+      - web
+      - agent
+    environment:
+      - DISABLE_HTTP_OPTIONS=1
+      - DISABLE_NOCOOKIE=1
+      - MTEST_BASEURL=web:8085
+      - MTEST_AGENT=agent:12345
+    command: [ "/bin/wait-for", "web:8085", "--", "/bin/mtest", "-test.v" ]

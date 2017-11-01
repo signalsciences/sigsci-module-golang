@@ -3,8 +3,11 @@
 build: ## build and lint locally
 	./scripts/build.sh
 
+# clean up each time to make sure nothing is cached between runs
+#
 test: ## build and run integration test
-	./scripts/test.sh
+	go clean ./... && cd ./scripts/test-golang19 && ./test.sh
+	go clean ./... && cd ./scripts/test-golang18 && ./test.sh
 
 init:  ## install gometalinter and msgp locally
 	go get -u github.com/alecthomas/gometalinter
@@ -15,7 +18,7 @@ init:  ## install gometalinter and msgp locally
 
 clean: ## cleanup
 	rm -rf artifacts
-	rm -f *.log
+	find . -name '*.log' | xargs rm -f
 	go clean ./...
 	git gc
 
