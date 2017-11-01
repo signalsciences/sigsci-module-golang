@@ -20,12 +20,12 @@ cleanup() {
 trap cleanup 0 1 2 3 6
 
 set -x
+
 # attempt to clean up any leftover junk
 $DOCKERCOMPOSE down
 
 # always get latest agent
 $DOCKERCOMPOSE pull
-
 
 # start everything, run tests
 #

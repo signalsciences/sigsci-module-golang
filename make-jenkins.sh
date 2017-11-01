@@ -6,13 +6,15 @@ if [ -z "${BUILD_NUMBER}" ]; then
 fi
 
 set -ex
+
+./scripts/test.sh
+
 BASE=$PWD
 ## setup our package properties by distro
 PKG_NAME="sigsci-module-golang"
 DST_BUCKET="s3://package-build-artifacts/${PKG_NAME}/${BUILD_NUMBER}"
 VERSION=$(cat ./VERSION)
 
-./scripts/test.sh
 
 cd ${BASE}
 aws s3 cp \
