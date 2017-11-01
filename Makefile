@@ -6,8 +6,7 @@ build: ## build and lint locally
 # clean up each time to make sure nothing is cached between runs
 #
 test: ## build and run integration test
-	go clean ./... && cd ./scripts/test-golang19 && ./test.sh
-	go clean ./... && cd ./scripts/test-golang18 && ./test.sh
+	./scripts/test.sh
 
 init:  ## install gometalinter and msgp locally
 	go get -u github.com/alecthomas/gometalinter
