@@ -7,6 +7,10 @@ fi
 
 set -ex
 
+# build / lint agent in a container
+./scripts/build-docker.sh
+
+# run module tests
 ./scripts/test.sh
 
 BASE=$PWD

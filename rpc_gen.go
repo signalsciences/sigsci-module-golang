@@ -12,13 +12,13 @@ import (
 func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
-	var zajw uint32
-	zajw, err = dc.ReadMapHeader()
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
 	if err != nil {
 		return
 	}
-	for zajw > 0 {
-		zajw--
+	for zb0001 > 0 {
+		zb0001--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			return
@@ -115,56 +115,56 @@ func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 				return
 			}
 		case "HeadersIn":
-			var zwht uint32
-			zwht, err = dc.ReadArrayHeader()
+			var zb0002 uint32
+			zb0002, err = dc.ReadArrayHeader()
 			if err != nil {
 				return
 			}
-			if cap(z.HeadersIn) >= int(zwht) {
-				z.HeadersIn = (z.HeadersIn)[:zwht]
+			if cap(z.HeadersIn) >= int(zb0002) {
+				z.HeadersIn = (z.HeadersIn)[:zb0002]
 			} else {
-				z.HeadersIn = make([][2]string, zwht)
+				z.HeadersIn = make([][2]string, zb0002)
 			}
-			for zxvk := range z.HeadersIn {
-				var zhct uint32
-				zhct, err = dc.ReadArrayHeader()
+			for za0001 := range z.HeadersIn {
+				var zb0003 uint32
+				zb0003, err = dc.ReadArrayHeader()
 				if err != nil {
 					return
 				}
-				if zhct != uint32(2) {
-					err = msgp.ArrayError{Wanted: uint32(2), Got: zhct}
+				if zb0003 != uint32(2) {
+					err = msgp.ArrayError{Wanted: uint32(2), Got: zb0003}
 					return
 				}
-				for zbzg := range z.HeadersIn[zxvk] {
-					z.HeadersIn[zxvk][zbzg], err = dc.ReadString()
+				for za0002 := range z.HeadersIn[za0001] {
+					z.HeadersIn[za0001][za0002], err = dc.ReadString()
 					if err != nil {
 						return
 					}
 				}
 			}
 		case "HeadersOut":
-			var zcua uint32
-			zcua, err = dc.ReadArrayHeader()
+			var zb0004 uint32
+			zb0004, err = dc.ReadArrayHeader()
 			if err != nil {
 				return
 			}
-			if cap(z.HeadersOut) >= int(zcua) {
-				z.HeadersOut = (z.HeadersOut)[:zcua]
+			if cap(z.HeadersOut) >= int(zb0004) {
+				z.HeadersOut = (z.HeadersOut)[:zb0004]
 			} else {
-				z.HeadersOut = make([][2]string, zcua)
+				z.HeadersOut = make([][2]string, zb0004)
 			}
-			for zbai := range z.HeadersOut {
-				var zxhx uint32
-				zxhx, err = dc.ReadArrayHeader()
+			for za0003 := range z.HeadersOut {
+				var zb0005 uint32
+				zb0005, err = dc.ReadArrayHeader()
 				if err != nil {
 					return
 				}
-				if zxhx != uint32(2) {
-					err = msgp.ArrayError{Wanted: uint32(2), Got: zxhx}
+				if zb0005 != uint32(2) {
+					err = msgp.ArrayError{Wanted: uint32(2), Got: zb0005}
 					return
 				}
-				for zcmr := range z.HeadersOut[zbai] {
-					z.HeadersOut[zbai][zcmr], err = dc.ReadString()
+				for za0004 := range z.HeadersOut[za0003] {
+					z.HeadersOut[za0003][za0004], err = dc.ReadString()
 					if err != nil {
 						return
 					}
@@ -359,13 +359,13 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	for zxvk := range z.HeadersIn {
+	for za0001 := range z.HeadersIn {
 		err = en.WriteArrayHeader(uint32(2))
 		if err != nil {
 			return
 		}
-		for zbzg := range z.HeadersIn[zxvk] {
-			err = en.WriteString(z.HeadersIn[zxvk][zbzg])
+		for za0002 := range z.HeadersIn[za0001] {
+			err = en.WriteString(z.HeadersIn[za0001][za0002])
 			if err != nil {
 				return
 			}
@@ -380,13 +380,13 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	for zbai := range z.HeadersOut {
+	for za0003 := range z.HeadersOut {
 		err = en.WriteArrayHeader(uint32(2))
 		if err != nil {
 			return
 		}
-		for zcmr := range z.HeadersOut[zbai] {
-			err = en.WriteString(z.HeadersOut[zbai][zcmr])
+		for za0004 := range z.HeadersOut[za0003] {
+			err = en.WriteString(z.HeadersOut[za0003][za0004])
 			if err != nil {
 				return
 			}
@@ -465,19 +465,19 @@ func (z *RPCMsgIn) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "HeadersIn"
 	o = append(o, 0xa9, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x49, 0x6e)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.HeadersIn)))
-	for zxvk := range z.HeadersIn {
+	for za0001 := range z.HeadersIn {
 		o = msgp.AppendArrayHeader(o, uint32(2))
-		for zbzg := range z.HeadersIn[zxvk] {
-			o = msgp.AppendString(o, z.HeadersIn[zxvk][zbzg])
+		for za0002 := range z.HeadersIn[za0001] {
+			o = msgp.AppendString(o, z.HeadersIn[za0001][za0002])
 		}
 	}
 	// string "HeadersOut"
 	o = append(o, 0xaa, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x4f, 0x75, 0x74)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.HeadersOut)))
-	for zbai := range z.HeadersOut {
+	for za0003 := range z.HeadersOut {
 		o = msgp.AppendArrayHeader(o, uint32(2))
-		for zcmr := range z.HeadersOut[zbai] {
-			o = msgp.AppendString(o, z.HeadersOut[zbai][zcmr])
+		for za0004 := range z.HeadersOut[za0003] {
+			o = msgp.AppendString(o, z.HeadersOut[za0003][za0004])
 		}
 	}
 	// string "PostBody"
@@ -490,13 +490,13 @@ func (z *RPCMsgIn) MarshalMsg(b []byte) (o []byte, err error) {
 func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zlqf uint32
-	zlqf, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zlqf > 0 {
-		zlqf--
+	for zb0001 > 0 {
+		zb0001--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -593,56 +593,56 @@ func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				return
 			}
 		case "HeadersIn":
-			var zdaf uint32
-			zdaf, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			var zb0002 uint32
+			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				return
 			}
-			if cap(z.HeadersIn) >= int(zdaf) {
-				z.HeadersIn = (z.HeadersIn)[:zdaf]
+			if cap(z.HeadersIn) >= int(zb0002) {
+				z.HeadersIn = (z.HeadersIn)[:zb0002]
 			} else {
-				z.HeadersIn = make([][2]string, zdaf)
+				z.HeadersIn = make([][2]string, zb0002)
 			}
-			for zxvk := range z.HeadersIn {
-				var zpks uint32
-				zpks, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			for za0001 := range z.HeadersIn {
+				var zb0003 uint32
+				zb0003, bts, err = msgp.ReadArrayHeaderBytes(bts)
 				if err != nil {
 					return
 				}
-				if zpks != uint32(2) {
-					err = msgp.ArrayError{Wanted: uint32(2), Got: zpks}
+				if zb0003 != uint32(2) {
+					err = msgp.ArrayError{Wanted: uint32(2), Got: zb0003}
 					return
 				}
-				for zbzg := range z.HeadersIn[zxvk] {
-					z.HeadersIn[zxvk][zbzg], bts, err = msgp.ReadStringBytes(bts)
+				for za0002 := range z.HeadersIn[za0001] {
+					z.HeadersIn[za0001][za0002], bts, err = msgp.ReadStringBytes(bts)
 					if err != nil {
 						return
 					}
 				}
 			}
 		case "HeadersOut":
-			var zjfb uint32
-			zjfb, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			var zb0004 uint32
+			zb0004, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				return
 			}
-			if cap(z.HeadersOut) >= int(zjfb) {
-				z.HeadersOut = (z.HeadersOut)[:zjfb]
+			if cap(z.HeadersOut) >= int(zb0004) {
+				z.HeadersOut = (z.HeadersOut)[:zb0004]
 			} else {
-				z.HeadersOut = make([][2]string, zjfb)
+				z.HeadersOut = make([][2]string, zb0004)
 			}
-			for zbai := range z.HeadersOut {
-				var zcxo uint32
-				zcxo, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			for za0003 := range z.HeadersOut {
+				var zb0005 uint32
+				zb0005, bts, err = msgp.ReadArrayHeaderBytes(bts)
 				if err != nil {
 					return
 				}
-				if zcxo != uint32(2) {
-					err = msgp.ArrayError{Wanted: uint32(2), Got: zcxo}
+				if zb0005 != uint32(2) {
+					err = msgp.ArrayError{Wanted: uint32(2), Got: zb0005}
 					return
 				}
-				for zcmr := range z.HeadersOut[zbai] {
-					z.HeadersOut[zbai][zcmr], bts, err = msgp.ReadStringBytes(bts)
+				for za0004 := range z.HeadersOut[za0003] {
+					z.HeadersOut[za0003][za0004], bts, err = msgp.ReadStringBytes(bts)
 					if err != nil {
 						return
 					}
@@ -667,17 +667,17 @@ func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *RPCMsgIn) Msgsize() (s int) {
 	s = 3 + 12 + msgp.StringPrefixSize + len(z.AccessKeyID) + 14 + msgp.StringPrefixSize + len(z.ModuleVersion) + 14 + msgp.StringPrefixSize + len(z.ServerVersion) + 13 + msgp.StringPrefixSize + len(z.ServerFlavor) + 11 + msgp.StringPrefixSize + len(z.ServerName) + 10 + msgp.Int64Size + 10 + msgp.Int64Size + 11 + msgp.StringPrefixSize + len(z.RemoteAddr) + 7 + msgp.StringPrefixSize + len(z.Method) + 7 + msgp.StringPrefixSize + len(z.Scheme) + 4 + msgp.StringPrefixSize + len(z.URI) + 9 + msgp.StringPrefixSize + len(z.Protocol) + 12 + msgp.StringPrefixSize + len(z.TLSProtocol) + 10 + msgp.StringPrefixSize + len(z.TLSCipher) + 12 + msgp.Int32Size + 13 + msgp.Int32Size + 15 + msgp.Int64Size + 13 + msgp.Int64Size + 10 + msgp.ArrayHeaderSize
-	for zxvk := range z.HeadersIn {
+	for za0001 := range z.HeadersIn {
 		s += msgp.ArrayHeaderSize
-		for zbzg := range z.HeadersIn[zxvk] {
-			s += msgp.StringPrefixSize + len(z.HeadersIn[zxvk][zbzg])
+		for za0002 := range z.HeadersIn[za0001] {
+			s += msgp.StringPrefixSize + len(z.HeadersIn[za0001][za0002])
 		}
 	}
 	s += 11 + msgp.ArrayHeaderSize
-	for zbai := range z.HeadersOut {
+	for za0003 := range z.HeadersOut {
 		s += msgp.ArrayHeaderSize
-		for zcmr := range z.HeadersOut[zbai] {
-			s += msgp.StringPrefixSize + len(z.HeadersOut[zbai][zcmr])
+		for za0004 := range z.HeadersOut[za0003] {
+			s += msgp.StringPrefixSize + len(z.HeadersOut[za0003][za0004])
 		}
 	}
 	s += 9 + msgp.StringPrefixSize + len(z.PostBody)
@@ -688,13 +688,13 @@ func (z *RPCMsgIn) Msgsize() (s int) {
 func (z *RPCMsgIn2) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
-	var zxpk uint32
-	zxpk, err = dc.ReadMapHeader()
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
 	if err != nil {
 		return
 	}
-	for zxpk > 0 {
-		zxpk--
+	for zb0001 > 0 {
+		zb0001--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			return
@@ -721,28 +721,28 @@ func (z *RPCMsgIn2) DecodeMsg(dc *msgp.Reader) (err error) {
 				return
 			}
 		case "HeadersOut":
-			var zdnj uint32
-			zdnj, err = dc.ReadArrayHeader()
+			var zb0002 uint32
+			zb0002, err = dc.ReadArrayHeader()
 			if err != nil {
 				return
 			}
-			if cap(z.HeadersOut) >= int(zdnj) {
-				z.HeadersOut = (z.HeadersOut)[:zdnj]
+			if cap(z.HeadersOut) >= int(zb0002) {
+				z.HeadersOut = (z.HeadersOut)[:zb0002]
 			} else {
-				z.HeadersOut = make([][2]string, zdnj)
+				z.HeadersOut = make([][2]string, zb0002)
 			}
-			for zeff := range z.HeadersOut {
-				var zobc uint32
-				zobc, err = dc.ReadArrayHeader()
+			for za0001 := range z.HeadersOut {
+				var zb0003 uint32
+				zb0003, err = dc.ReadArrayHeader()
 				if err != nil {
 					return
 				}
-				if zobc != uint32(2) {
-					err = msgp.ArrayError{Wanted: uint32(2), Got: zobc}
+				if zb0003 != uint32(2) {
+					err = msgp.ArrayError{Wanted: uint32(2), Got: zb0003}
 					return
 				}
-				for zrsw := range z.HeadersOut[zeff] {
-					z.HeadersOut[zeff][zrsw], err = dc.ReadString()
+				for za0002 := range z.HeadersOut[za0001] {
+					z.HeadersOut[za0001][za0002], err = dc.ReadString()
 					if err != nil {
 						return
 					}
@@ -806,13 +806,13 @@ func (z *RPCMsgIn2) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	for zeff := range z.HeadersOut {
+	for za0001 := range z.HeadersOut {
 		err = en.WriteArrayHeader(uint32(2))
 		if err != nil {
 			return
 		}
-		for zrsw := range z.HeadersOut[zeff] {
-			err = en.WriteString(z.HeadersOut[zeff][zrsw])
+		for za0002 := range z.HeadersOut[za0001] {
+			err = en.WriteString(z.HeadersOut[za0001][za0002])
 			if err != nil {
 				return
 			}
@@ -840,10 +840,10 @@ func (z *RPCMsgIn2) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "HeadersOut"
 	o = append(o, 0xaa, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x4f, 0x75, 0x74)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.HeadersOut)))
-	for zeff := range z.HeadersOut {
+	for za0001 := range z.HeadersOut {
 		o = msgp.AppendArrayHeader(o, uint32(2))
-		for zrsw := range z.HeadersOut[zeff] {
-			o = msgp.AppendString(o, z.HeadersOut[zeff][zrsw])
+		for za0002 := range z.HeadersOut[za0001] {
+			o = msgp.AppendString(o, z.HeadersOut[za0001][za0002])
 		}
 	}
 	return
@@ -853,13 +853,13 @@ func (z *RPCMsgIn2) MarshalMsg(b []byte) (o []byte, err error) {
 func (z *RPCMsgIn2) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zsnv uint32
-	zsnv, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zsnv > 0 {
-		zsnv--
+	for zb0001 > 0 {
+		zb0001--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -886,28 +886,28 @@ func (z *RPCMsgIn2) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				return
 			}
 		case "HeadersOut":
-			var zkgt uint32
-			zkgt, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			var zb0002 uint32
+			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				return
 			}
-			if cap(z.HeadersOut) >= int(zkgt) {
-				z.HeadersOut = (z.HeadersOut)[:zkgt]
+			if cap(z.HeadersOut) >= int(zb0002) {
+				z.HeadersOut = (z.HeadersOut)[:zb0002]
 			} else {
-				z.HeadersOut = make([][2]string, zkgt)
+				z.HeadersOut = make([][2]string, zb0002)
 			}
-			for zeff := range z.HeadersOut {
-				var zema uint32
-				zema, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			for za0001 := range z.HeadersOut {
+				var zb0003 uint32
+				zb0003, bts, err = msgp.ReadArrayHeaderBytes(bts)
 				if err != nil {
 					return
 				}
-				if zema != uint32(2) {
-					err = msgp.ArrayError{Wanted: uint32(2), Got: zema}
+				if zb0003 != uint32(2) {
+					err = msgp.ArrayError{Wanted: uint32(2), Got: zb0003}
 					return
 				}
-				for zrsw := range z.HeadersOut[zeff] {
-					z.HeadersOut[zeff][zrsw], bts, err = msgp.ReadStringBytes(bts)
+				for za0002 := range z.HeadersOut[za0001] {
+					z.HeadersOut[za0001][za0002], bts, err = msgp.ReadStringBytes(bts)
 					if err != nil {
 						return
 					}
@@ -927,10 +927,10 @@ func (z *RPCMsgIn2) UnmarshalMsg(bts []byte) (o []byte, err error) {
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *RPCMsgIn2) Msgsize() (s int) {
 	s = 1 + 10 + msgp.StringPrefixSize + len(z.RequestID) + 13 + msgp.Int32Size + 15 + msgp.Int64Size + 13 + msgp.Int64Size + 11 + msgp.ArrayHeaderSize
-	for zeff := range z.HeadersOut {
+	for za0001 := range z.HeadersOut {
 		s += msgp.ArrayHeaderSize
-		for zrsw := range z.HeadersOut[zeff] {
-			s += msgp.StringPrefixSize + len(z.HeadersOut[zeff][zrsw])
+		for za0002 := range z.HeadersOut[za0001] {
+			s += msgp.StringPrefixSize + len(z.HeadersOut[za0001][za0002])
 		}
 	}
 	return
@@ -940,13 +940,13 @@ func (z *RPCMsgIn2) Msgsize() (s int) {
 func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
-	var zqyh uint32
-	zqyh, err = dc.ReadMapHeader()
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
 	if err != nil {
 		return
 	}
-	for zqyh > 0 {
-		zqyh--
+	for zb0001 > 0 {
+		zb0001--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			return
@@ -963,28 +963,28 @@ func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 				return
 			}
 		case "RequestHeaders":
-			var zyzr uint32
-			zyzr, err = dc.ReadArrayHeader()
+			var zb0002 uint32
+			zb0002, err = dc.ReadArrayHeader()
 			if err != nil {
 				return
 			}
-			if cap(z.RequestHeaders) >= int(zyzr) {
-				z.RequestHeaders = (z.RequestHeaders)[:zyzr]
+			if cap(z.RequestHeaders) >= int(zb0002) {
+				z.RequestHeaders = (z.RequestHeaders)[:zb0002]
 			} else {
-				z.RequestHeaders = make([][2]string, zyzr)
+				z.RequestHeaders = make([][2]string, zb0002)
 			}
-			for zpez := range z.RequestHeaders {
-				var zywj uint32
-				zywj, err = dc.ReadArrayHeader()
+			for za0001 := range z.RequestHeaders {
+				var zb0003 uint32
+				zb0003, err = dc.ReadArrayHeader()
 				if err != nil {
 					return
 				}
-				if zywj != uint32(2) {
-					err = msgp.ArrayError{Wanted: uint32(2), Got: zywj}
+				if zb0003 != uint32(2) {
+					err = msgp.ArrayError{Wanted: uint32(2), Got: zb0003}
 					return
 				}
-				for zqke := range z.RequestHeaders[zpez] {
-					z.RequestHeaders[zpez][zqke], err = dc.ReadString()
+				for za0002 := range z.RequestHeaders[za0001] {
+					z.RequestHeaders[za0001][za0002], err = dc.ReadString()
 					if err != nil {
 						return
 					}
@@ -1030,13 +1030,13 @@ func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	for zpez := range z.RequestHeaders {
+	for za0001 := range z.RequestHeaders {
 		err = en.WriteArrayHeader(uint32(2))
 		if err != nil {
 			return
 		}
-		for zqke := range z.RequestHeaders[zpez] {
-			err = en.WriteString(z.RequestHeaders[zpez][zqke])
+		for za0002 := range z.RequestHeaders[za0001] {
+			err = en.WriteString(z.RequestHeaders[za0001][za0002])
 			if err != nil {
 				return
 			}
@@ -1061,10 +1061,10 @@ func (z *RPCMsgOut) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "RequestHeaders"
 	o = append(o, 0xae, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.RequestHeaders)))
-	for zpez := range z.RequestHeaders {
+	for za0001 := range z.RequestHeaders {
 		o = msgp.AppendArrayHeader(o, uint32(2))
-		for zqke := range z.RequestHeaders[zpez] {
-			o = msgp.AppendString(o, z.RequestHeaders[zpez][zqke])
+		for za0002 := range z.RequestHeaders[za0001] {
+			o = msgp.AppendString(o, z.RequestHeaders[za0001][za0002])
 		}
 	}
 	return
@@ -1074,13 +1074,13 @@ func (z *RPCMsgOut) MarshalMsg(b []byte) (o []byte, err error) {
 func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zjpj uint32
-	zjpj, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zjpj > 0 {
-		zjpj--
+	for zb0001 > 0 {
+		zb0001--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -1097,28 +1097,28 @@ func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				return
 			}
 		case "RequestHeaders":
-			var zzpf uint32
-			zzpf, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			var zb0002 uint32
+			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				return
 			}
-			if cap(z.RequestHeaders) >= int(zzpf) {
-				z.RequestHeaders = (z.RequestHeaders)[:zzpf]
+			if cap(z.RequestHeaders) >= int(zb0002) {
+				z.RequestHeaders = (z.RequestHeaders)[:zb0002]
 			} else {
-				z.RequestHeaders = make([][2]string, zzpf)
+				z.RequestHeaders = make([][2]string, zb0002)
 			}
-			for zpez := range z.RequestHeaders {
-				var zrfe uint32
-				zrfe, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			for za0001 := range z.RequestHeaders {
+				var zb0003 uint32
+				zb0003, bts, err = msgp.ReadArrayHeaderBytes(bts)
 				if err != nil {
 					return
 				}
-				if zrfe != uint32(2) {
-					err = msgp.ArrayError{Wanted: uint32(2), Got: zrfe}
+				if zb0003 != uint32(2) {
+					err = msgp.ArrayError{Wanted: uint32(2), Got: zb0003}
 					return
 				}
-				for zqke := range z.RequestHeaders[zpez] {
-					z.RequestHeaders[zpez][zqke], bts, err = msgp.ReadStringBytes(bts)
+				for za0002 := range z.RequestHeaders[za0001] {
+					z.RequestHeaders[za0001][za0002], bts, err = msgp.ReadStringBytes(bts)
 					if err != nil {
 						return
 					}
@@ -1138,10 +1138,10 @@ func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *RPCMsgOut) Msgsize() (s int) {
 	s = 1 + 12 + z.WAFResponse.Msgsize() + 10 + msgp.StringPrefixSize + len(z.RequestID) + 15 + msgp.ArrayHeaderSize
-	for zpez := range z.RequestHeaders {
+	for za0001 := range z.RequestHeaders {
 		s += msgp.ArrayHeaderSize
-		for zqke := range z.RequestHeaders[zpez] {
-			s += msgp.StringPrefixSize + len(z.RequestHeaders[zpez][zqke])
+		for za0002 := range z.RequestHeaders[za0001] {
+			s += msgp.StringPrefixSize + len(z.RequestHeaders[za0001][za0002])
 		}
 	}
 	return
