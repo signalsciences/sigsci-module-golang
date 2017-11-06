@@ -10,6 +10,7 @@ cleanup() {
   $DOCKERCOMPOSE logs --no-color agent >& agent.log
   $DOCKERCOMPOSE logs --no-color web >& web.log
   $DOCKERCOMPOSE logs --no-color mtest >& mtest.log
+  $DOCKERCOMPOSE logs --no-color punchingbag >& punchingbag.log
 
   # delete everything
   $DOCKERCOMPOSE down

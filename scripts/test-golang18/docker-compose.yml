@@ -7,25 +7,38 @@ services:
   # we only define it so it is attached to our fake network
   # it will be run a few times with different options manually
   #
-  # The volumes spec is a bit weird.. this script is run in scripts/test but
-  # needs stuff in ../../examples.  Consider moving.
+  #
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "8085"
     networks:
       - mtest
-    volumes:
-      - ../..:/go/src/github.sigsci.in/engineering/sigsci-module-golang
-    command: [ "go", "run", "/go/src/github.sigsci.in/engineering/sigsci-module-golang/examples/mtest/main.go" ]
+    depends_on:
+      - agent
 
   # agent
   agent:
     image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/sigsci-agent:latest
-    command: [ "-rpc-address", "9090", "-debug-rpc-test-harness", "-debug-standalone", "3" ]
+    command: [ "-debug-log-web-inputs", "2", "-rpc-address", "9090", "-debug-rpc-test-harness", "-debug-standalone", "3" ]
+    expose:
+      - "9090"
+      - "12345"
     networks:
       - mtest
 
+  # punching bag
+  punchingbag:
+    image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/module-testing:latest
+    networks:
+      - mtest
+    expose:
+      - "8086"
+    command: [ "/bin/punchingbag", "-addr", ":8086" ]
+
   # mtest
-  # we define the module-tester but don't start it (via command: /bin/true)
   #
   mtest:
     image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/module-testing:latest
@@ -34,9 +47,11 @@ services:
     depends_on:
       - web
       - agent
+      - punchingbag
     environment:
       - DISABLE_HTTP_OPTIONS=1
       - DISABLE_NOCOOKIE=1
       - MTEST_BASEURL=web:8085
       - MTEST_AGENT=agent:12345
     command: [ "/bin/wait-for", "web:8085", "--", "/bin/mtest", "-test.v" ]
+
