@@ -1,5 +1,9 @@
 # GoLang Module Release Notes
 
+## Unreleased
+
+* Support multipart/form-data post
+
 ## 1.3.1 2017-09-25
 
 * Remove unused dependency

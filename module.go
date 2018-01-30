@@ -421,6 +421,10 @@ func checkContentType(s string) bool {
 		return true
 	}
 
+	if strings.HasPrefix(s, "multipart/form-data") {
+		return true
+	}
+
 	if strings.Contains(s, "json") {
 		return true
 	}

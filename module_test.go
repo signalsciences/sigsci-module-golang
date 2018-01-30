@@ -71,6 +71,7 @@ func TestCheckContentType(t *testing.T) {
 	}{
 		{true, "application/x-www-form-urlencoded"},
 		{true, "application/x-www-form-urlencoded; charset=UTF-8"},
+		{true, "multipart/form-data"},
 		{true, "text/xml"},
 		{true, "application/xml"},
 		{true, "application/json"},
