@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Standardized release notes
+
+## Unreleased
+
 * Added support for multipart/form-data post
 
 ## 1.3.1 2017-09-25
