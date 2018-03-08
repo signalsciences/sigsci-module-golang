@@ -2,12 +2,16 @@
 
 ## Unreleased
 
-* Support multipart/form-data post
+* Standardized release notes
+
+## Unreleased
+
+* Added support for multipart/form-data post
 
 ## 1.3.1 2017-09-25
 
-* Remove unused dependency
-* Remove internal testing example
+* Removed unused dependency
+* Removed internal testing example
 
 ## 1.3.0 2017-09-19
 
@@ -16,28 +20,28 @@
 
 ## 1.2.3 2017-09-11
 
-* Standardize defaults across modules and document
+* Standardized defaults across modules and document
 * Bad release
 
 ## 1.2.2 2017-07-02
 
-* Update to use [signalsciences/tlstext](https://github.com/signalsciences/tlstext)
+* Updated to use [signalsciences/tlstext](https://github.com/signalsciences/tlstext)
 
 ## 1.2.1 2017-03-21
 
-* Send XML post bodies to agent
-* Better content-type processing
+* Added ability to send XML post bodies to agent
+* Improved content-type processing
 
 ## 1.2.0 2017-03-06
 
-* Minor performance improvements
-* Expose internal datastructures and methods for
+* Improved performance
+* Exposed internal datastructures and methods
   to allow alternative module implementations and
-  performance tests.
+  performance tests
 
 ## 1.1.0 2017-02-28
 
-* Fixes TCP vs. UDS configuration.
+* Fixed TCP vs. UDS configuration
 
 ## 0.1.0 2016-09-02
 
