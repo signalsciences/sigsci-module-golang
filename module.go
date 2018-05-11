@@ -7,7 +7,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/rpc"
 	"runtime"
 	"strconv"
 	"strings"
@@ -28,6 +27,7 @@ type Module struct {
 	anomalyDuration  time.Duration
 	maxContentLength int64
 	ignoredMethods   map[string]bool
+	inspector        Inspector
 }
 
 // NewModule wraps an http.Handler use the Signal Sciences Agent
@@ -56,6 +56,15 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 		err := opt(&m)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	if m.inspector == nil {
+		m.inspector = &RPCInspector{
+			Network: m.rpcNetwork,
+			Address: m.rpcAddress,
+			Timeout: m.timeout,
+			Debug:   m.debug,
 		}
 	}
 
@@ -128,6 +137,14 @@ func Timeout(t time.Duration) func(*Module) error {
 	}
 }
 
+// CustomInspector is a function argument that sets a custom inspector
+func CustomInspector(obj Inspector) func(*Module) error {
+	return func(m *Module) error {
+		m.inspector = obj
+		return nil
+	}
+}
+
 // ServeHTTP satisfies the http.Handler interface
 func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	start := time.Now().UTC()
@@ -176,7 +193,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		agentin2.ResponseSize = int64(size)
 		agentin2.ResponseMillis = int64(duration / time.Millisecond)
 		agentin2.HeadersOut = filterHeaders(rr.Header())
-		if err := m.agentUpdateRequest(req, agentin2); err != nil && m.debug {
+		if err := m.agentUpdateRequest(agentin2); err != nil && m.debug {
 			log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
 		}
 		return
@@ -189,50 +206,10 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (m *Module) makeConnection() (net.Conn, error) {
-	if m.debug {
-		log.Printf("Making a new RPC connection.")
-	}
-	conn, err := net.DialTimeout(m.rpcNetwork, m.rpcAddress, m.timeout)
-	if err != nil {
-		return nil, err
-	}
-	conn.SetDeadline(time.Now().Add(m.timeout))
-	return conn, nil
-}
-
-func (m *Module) getConnection() (net.Conn, error) {
-	// here for future expansion to use pools, etc.
-	return m.makeConnection()
-}
-
-// SendRawPreRequest sends a preformatted RPCMsgIn to the agent
-// End-users never need to use this function is expose for
-// performance testing
-func (m *Module) SendRawPreRequest(msg *RPCMsgIn) (out RPCMsgOut, err error) {
-	conn, err := m.getConnection()
-	if err != nil {
-		return out, err
-	}
-	rpcCodec := newMsgpClientCodec(conn)
-	client := rpc.NewClientWithCodec(rpcCodec)
-	err = client.Call("RPC.PreRequest", msg, &out)
-	client.Close()
-	return out, err
-}
-
 // agentPreRequest makes a prerequest RPC call to the agent
 // In general this is never to be used by end-users and is
 // only exposed for use in performance testing
 func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPCMsgOut, err error) {
-	// if we can't get a connection, then we should not
-	// do any work.  Maybe agent is down
-	// TODO: does getConnection actually open a connection?
-	conn, err := m.getConnection()
-	if err != nil {
-		return agentin2, out, fmt.Errorf("unable to get connection : %s", err)
-	}
-
 	// Create message to agent from the input request
 	// see if we can read-in the post body
 
@@ -261,13 +238,9 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 	//
 	agentin := NewRPCMsgIn(req, postbody, -1, -1, -1)
 
-	rpcCodec := newMsgpClientCodec(conn)
-	client := rpc.NewClientWithCodec(rpcCodec)
-
-	err = client.Call("RPC.PreRequest", agentin, &out)
-	client.Close()
+	err = m.inspector.PreRequest(agentin, &out)
 	if err != nil {
-		return agentin2, out, fmt.Errorf("unable to make RPC.PreRequest call: %s", err)
+		return
 	}
 
 	// set any request headers
@@ -288,44 +261,25 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 		ResponseSize:   -1,
 	}
 
-	return agentin2, out, nil
+	return
 }
 
 // agentPostRequest makes a postrequest RPC call to the agent
 func (m *Module) agentPostRequest(req *http.Request, agentResponse int32,
 	code int, size int64, millis time.Duration, hout http.Header) error {
-	conn, err := m.getConnection()
-	if err != nil {
-		return err
-	}
-
 	// Create message to agent from the input request
 	agentin := NewRPCMsgIn(req, "", code, size, millis)
 	agentin.WAFResponse = agentResponse
 	agentin.HeadersOut = filterHeaders(hout)
 
-	rpcCodec := newMsgpClientCodec(conn)
-	client := rpc.NewClientWithCodec(rpcCodec)
-	var out int
-	err = client.Call("RPC.PostRequest", agentin, &out)
-	client.Close()
-	return err
+	// TBD: Actually use the output
+	return m.inspector.PostRequest(agentin, &RPCMsgOut{})
 }
 
 // agentUpdateRequest makes an updaterequest RPC call to the agent
-func (m *Module) agentUpdateRequest(req *http.Request, agentin RPCMsgIn2) error {
-	conn, err := m.getConnection()
-	if err != nil {
-		return err
-	}
-
-	rpcCodec := newMsgpClientCodec(conn)
-	client := rpc.NewClientWithCodec(rpcCodec)
-
-	var out int
-	err = client.Call("RPC.UpdateRequest", &agentin, &out)
-	client.Close()
-	return err
+func (m *Module) agentUpdateRequest(agentin RPCMsgIn2) error {
+	// TBD: Actually use the output
+	return m.inspector.UpdateRequest(&agentin, &RPCMsgOut{})
 }
 
 const moduleVersion = "sigsci-module-golang " + version
