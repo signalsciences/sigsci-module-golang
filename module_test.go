@@ -50,9 +50,9 @@ func TestNewRPCMsgFromRequest(t *testing.T) {
 		}
 	}
 
-	got := NewRPCMsgIn(r, "", -1, -1, -1)
+	got := NewRPCMsgIn(r, nil, -1, -1, -1, "", "")
 	if ne, equal := eq(*got, want); !equal {
-		t.Errorf("NewWafMsgFromRequest: incorrect %q", ne)
+		t.Errorf("newWafMsgFromRequest: incorrect %q", ne)
 	}
 }
 

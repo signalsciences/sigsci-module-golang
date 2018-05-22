@@ -1,6 +1,7 @@
 package sigsci
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -15,6 +16,8 @@ import (
 	"github.com/signalsciences/tlstext"
 )
 
+const moduleVersion = "sigsci-module-golang " + version
+
 // Module is an http.Handler that wraps inbound communication and
 // sends it to the Signal Sciences Agent.
 type Module struct {
@@ -26,8 +29,11 @@ type Module struct {
 	anomalySize      int64
 	anomalyDuration  time.Duration
 	maxContentLength int64
-	ignoredMethods   map[string]bool
+	moduleVersion    string
+	serverVersion    string
 	inspector        Inspector
+	inspInit         InspectorInitFunc
+	inspFini         InspectorFiniFunc
 }
 
 // NewModule wraps an http.Handler use the Signal Sciences Agent
@@ -45,10 +51,8 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 		anomalySize:      512 * 1024,
 		anomalyDuration:  1 * time.Second,
 		maxContentLength: 100000,
-		ignoredMethods: map[string]bool{
-			"OPTIONS": true,
-			"CONNECT": true,
-		},
+		moduleVersion:    moduleVersion,
+		serverVersion:    runtime.Version(),
 	}
 
 	// override defaults from function args
@@ -137,10 +141,33 @@ func Timeout(t time.Duration) func(*Module) error {
 	}
 }
 
-// CustomInspector is a function argument that sets a custom inspector
-func CustomInspector(obj Inspector) func(*Module) error {
+// ModuleIdentifier is a function argument that sets the module name
+// and version for custom setups.
+// The version should be a sem-version (e.g., "1.2.3")
+func ModuleIdentifier(name, version string) func(*Module) error {
 	return func(m *Module) error {
-		m.inspector = obj
+		m.moduleVersion = name + " " + version
+		return nil
+	}
+}
+
+// ServerIdentifier is a function argument that sets the serveru
+// identifier for custom setups
+func ServerIdentifier(id string) func(*Module) error {
+	return func(m *Module) error {
+		m.serverVersion = id
+		return nil
+	}
+}
+
+// CustomInspector is a function argument that sets a custom inspector,
+// an optional inspector initializer to decide if inspection should occur, and
+// an optional inspector finializer that can perform and post-inspection steps
+func CustomInspector(insp Inspector, init InspectorInitFunc, fini InspectorFiniFunc) func(*Module) error {
+	return func(m *Module) error {
+		m.inspector = insp
+		m.inspInit = init
+		m.inspFini = fini
 		return nil
 	}
 }
@@ -149,10 +176,14 @@ func CustomInspector(obj Inspector) func(*Module) error {
 func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	start := time.Now().UTC()
 
-	// Do not process ignored methods.
-	if m.ignoredMethods[req.Method] {
+	// Use the inspector init/fini functions if available
+	if m.inspInit != nil && !m.inspInit(req) {
+		// Fail open
 		m.handler.ServeHTTP(w, req)
 		return
+	}
+	if m.inspFini != nil {
+		defer m.inspFini(req)
 	}
 
 	agentin2, out, err := m.agentPreRequest(req)
@@ -218,30 +249,23 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 	// Create message to agent from the input request
 	// see if we can read-in the post body
 
-	postbody := ""
+	var postbody []byte
 	if readPost(req, m) {
 		// Read all of it and close
 		// if error, just keep going
 		// It's possible that is is error event
 		// but not sure what it is.  Likely
 		// the client disconnected.
-		buf, _ := ioutil.ReadAll(req.Body)
+		postbody, _ = ioutil.ReadAll(req.Body)
 		req.Body.Close()
-
-		// save a copy
-		postbody = string(buf)
 
 		// make a new reader so the next handler
 		// can still read the post normally as if
 		// nothing happened
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(buf))
+		req.Body = ioutil.NopCloser(bytes.NewBuffer(postbody))
 	}
 
-	// TODO: we make a full copy of the postbody, but it would
-	//  appear we don't really need to do this as it's going to be
-	//  encoded before.  Can we change NewRPCMsgIn to accept a []byte?
-	//
-	agentin := NewRPCMsgIn(req, postbody, -1, -1, -1)
+	agentin := NewRPCMsgIn(req, postbody, -1, -1, -1, m.moduleVersion, m.serverVersion)
 
 	err = m.inspector.PreRequest(agentin, &out)
 	if err != nil {
@@ -273,7 +297,7 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 func (m *Module) agentPostRequest(req *http.Request, agentResponse int32,
 	code int, size int64, millis time.Duration, hout http.Header) error {
 	// Create message to agent from the input request
-	agentin := NewRPCMsgIn(req, "", code, size, millis)
+	agentin := NewRPCMsgIn(req, nil, code, size, millis, m.moduleVersion, m.serverVersion)
 	agentin.WAFResponse = agentResponse
 	agentin.HeadersOut = filterHeaders(hout)
 
@@ -287,12 +311,13 @@ func (m *Module) agentUpdateRequest(agentin RPCMsgIn2) error {
 	return m.inspector.UpdateRequest(&agentin, &RPCMsgOut{})
 }
 
-const moduleVersion = "sigsci-module-golang " + version
-
 // NewRPCMsgIn creates a agent message from a go http.Request object
 // End-users of the golang module never need to use this
 // directly and it is only exposed for performance testing
-func NewRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur time.Duration) *RPCMsgIn {
+func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur time.Duration, module, server string) *RPCMsgIn {
+	// TODO: change to when request came in
+	now := time.Now().UTC()
+
 	// assemble an message to send to agent
 	tlsProtocol := ""
 	tlsCipher := ""
@@ -304,12 +329,12 @@ func NewRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur tim
 		tlsCipher = tlstext.CipherSuite(r.TLS.CipherSuite)
 	}
 	return &RPCMsgIn{
-		ModuleVersion:  moduleVersion,
-		ServerVersion:  runtime.Version(),
+		ModuleVersion:  module,
+		ServerVersion:  server,
 		ServerFlavor:   "", /* not sure what should be here */
 		ServerName:     r.Host,
-		Timestamp:      time.Now().UTC().Unix(), /* TODO: change to when request came in */
-		NowMillis:      time.Now().UTC().UnixNano() / 1e6,
+		Timestamp:      now.Unix(),
+		NowMillis:      now.UnixNano() / 1e6,
 		RemoteAddr:     stripPort(r.RemoteAddr),
 		Method:         r.Method,
 		Scheme:         scheme,
@@ -320,7 +345,7 @@ func NewRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur tim
 		ResponseCode:   int32(code),
 		ResponseMillis: int64(dur / time.Millisecond),
 		ResponseSize:   size,
-		PostBody:       postbody,
+		PostBody:       string(postbody),
 		HeadersIn:      filterHeaders(r.Header),
 	}
 }
