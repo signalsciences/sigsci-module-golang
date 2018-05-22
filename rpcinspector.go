@@ -71,9 +71,9 @@ func (ri *RPCInspector) PostRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 	client.Close()
 
 	// Fake the output until RPC call is updated
-	out.WAFResponse.AsInt(200)
+	out.WAFResponse = 200
 	out.RequestID = ""
-	out.RequestHeaders = [][2]string{}
+	out.RequestHeaders = nil
 
 	// TBD: wrap error instead of prefixing
 	if err != nil {
@@ -98,9 +98,9 @@ func (ri *RPCInspector) UpdateRequest(in *RPCMsgIn2, out *RPCMsgOut) error {
 	client.Close()
 
 	// Fake the output until RPC call is updated
-	out.WAFResponse.AsInt(200)
+	out.WAFResponse = 200
 	out.RequestID = ""
-	out.RequestHeaders = [][2]string{}
+	out.RequestHeaders = nil
 
 	return err
 }

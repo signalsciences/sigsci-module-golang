@@ -170,7 +170,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// this is why the default code is 200 and it only changes if WriteHeader is called.
 	rr := &responseRecorder{w, 200, 0}
 
-	wafresponse, _ := out.WAFResponse.Int()
+	wafresponse := out.WAFResponse
 	switch wafresponse {
 	case 406:
 		http.Error(rr, "you lose", int(wafresponse))
@@ -200,7 +200,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if code >= 300 || size >= m.anomalySize || duration >= m.anomalyDuration {
-		if err := m.agentPostRequest(req, int32(wafresponse), code, size, duration, rr.Header()); err != nil && m.debug {
+		if err := m.agentPostRequest(req, wafresponse, code, size, duration, rr.Header()); err != nil && m.debug {
 			log.Printf("ERROR: 'RPC.PostRequest' request failed:%s", err.Error())
 		}
 	}
@@ -248,7 +248,7 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 		req.Header.Add("X-SigSci-RequestID", out.RequestID)
 	}
 
-	wafresponse, _ := out.WAFResponse.Int()
+	wafresponse := out.WAFResponse
 	req.Header.Add("X-SigSci-AgentResponse", strconv.Itoa(int(wafresponse)))
 	for _, kv := range out.RequestHeaders {
 		req.Header.Add(kv[0], kv[1])

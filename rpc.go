@@ -2,10 +2,6 @@ package sigsci
 
 //go:generate msgp -unexported -tests=false
 
-import (
-	"github.com/tinylib/msgp/msgp"
-)
-
 //
 // This is for messages to and from the agent
 //
@@ -41,7 +37,7 @@ type RPCMsgIn struct {
 // RPCMsgOut is sent back to the webserver
 // it contains a a HTTP response code, and an optional UUID
 type RPCMsgOut struct {
-	WAFResponse    msgp.Number // HACK.. should be int32
+	WAFResponse    int32
 	RequestID      string      `json:",omitempty"` /* optional */
 	RequestHeaders [][2]string `json:",omitempty"` /* optional, to set additional request headers */
 }
