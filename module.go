@@ -350,6 +350,14 @@ func (l *responseRecorder) Write(b []byte) (int, error) {
 	return l.w.Write(b)
 }
 
+func (l *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if h, ok := l.w.(http.Hijacker); ok {
+		return h.Hijack()
+	}
+	// Required for WebSockets to work
+	return nil, nil, fmt.Errorf("response writer (%T) does not implement http.Hijacker", l.w)
+}
+
 // readPost returns True if we should read a postbody or not
 func readPost(req *http.Request, m *Module) bool {
 	// nothing to do
