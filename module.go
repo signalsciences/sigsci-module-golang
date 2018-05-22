@@ -206,6 +206,11 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// Inspector returns the configured inspector
+func (m *Module) Inspector() Inspector {
+	return m.inspector
+}
+
 // agentPreRequest makes a prerequest RPC call to the agent
 // In general this is never to be used by end-users and is
 // only exposed for use in performance testing
