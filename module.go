@@ -81,9 +81,9 @@ func Version() string {
 }
 
 // Debug turns on debug logging
-func Debug() func(*Module) error {
+func Debug(enable bool) func(*Module) error {
 	return func(m *Module) error {
-		m.debug = true
+		m.debug = enable
 		return nil
 	}
 }
