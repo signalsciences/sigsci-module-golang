@@ -3,10 +3,9 @@
 ## Unreleased
 
 * Standardized release notes
-
-## Unreleased
-
 * Added support for multipart/form-data post
+* Extended architecture to allow more flexibility
+* Updated response writer interface to allow for WebSocket use
 
 ## 1.3.1 2017-09-25
 
