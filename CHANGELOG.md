@@ -6,6 +6,7 @@
 * Added support for multipart/form-data post
 * Extended architecture to allow more flexibility
 * Updated response writer interface to allow for WebSocket use
+* Removed default filters on CONNECT/OPTIONS methods - now inspected by default
 
 ## 1.3.1 2017-09-25
 
