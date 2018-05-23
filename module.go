@@ -88,7 +88,8 @@ func Debug() func(*Module) error {
 	}
 }
 
-// Socket is a function argument to set where send data to the agent
+// Socket is a function argument to set where send data to the
+// Signal Sciences Agent
 func Socket(network, address string) func(*Module) error {
 	return func(m *Module) error {
 		m.rpcNetwork = network
@@ -105,7 +106,7 @@ func Socket(network, address string) func(*Module) error {
 	}
 }
 
-// AnomalySize is a function argument to sent data to the agent if the
+// AnomalySize is a function argument to sent data to the inspector if the
 // response was abnormally large.
 func AnomalySize(size int64) func(*Module) error {
 	return func(m *Module) error {
@@ -114,7 +115,7 @@ func AnomalySize(size int64) func(*Module) error {
 	}
 }
 
-// AnomalyDuration is a function argument to send data to the agent if
+// AnomalyDuration is a function argument to send data to the inspector if
 // the response was abnormally slow
 func AnomalyDuration(dur time.Duration) func(*Module) error {
 	return func(m *Module) error {
@@ -133,7 +134,7 @@ func MaxContentLength(size int64) func(*Module) error {
 }
 
 // Timeout is a function argument that sets the time to wait until
-// receiving a reply from the agent
+// receiving a reply from the inspector
 func Timeout(t time.Duration) func(*Module) error {
 	return func(m *Module) error {
 		m.timeout = t
@@ -186,11 +187,11 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		defer m.inspFini(req)
 	}
 
-	agentin2, out, err := m.agentPreRequest(req)
+	inspin2, out, err := m.inspectorPreRequest(req)
 	if err != nil {
 		// Fail open
 		if m.debug {
-			log.Println("Error pushing prerequest to agent: ", err.Error())
+			log.Println("Error in prerequest to inspector: ", err.Error())
 		}
 		m.handler.ServeHTTP(w, req)
 		return
@@ -209,7 +210,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		// continue with normal request
 		m.handler.ServeHTTP(rr, req)
 	default:
-		log.Printf("ERROR: Received invalid response code from agent: %d", wafresponse)
+		log.Printf("ERROR: Received invalid response code from inspector: %d", wafresponse)
 		// continue with normal request
 		m.handler.ServeHTTP(rr, req)
 	}
@@ -219,19 +220,19 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	size := rr.size
 	duration := end.Sub(start)
 
-	if agentin2.RequestID != "" {
-		agentin2.ResponseCode = int32(code)
-		agentin2.ResponseSize = int64(size)
-		agentin2.ResponseMillis = int64(duration / time.Millisecond)
-		agentin2.HeadersOut = filterHeaders(rr.Header())
-		if err := m.agentUpdateRequest(agentin2); err != nil && m.debug {
+	if inspin2.RequestID != "" {
+		inspin2.ResponseCode = int32(code)
+		inspin2.ResponseSize = int64(size)
+		inspin2.ResponseMillis = int64(duration / time.Millisecond)
+		inspin2.HeadersOut = filterHeaders(rr.Header())
+		if err := m.inspectorUpdateRequest(inspin2); err != nil && m.debug {
 			log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
 		}
 		return
 	}
 
 	if code >= 300 || size >= m.anomalySize || duration >= m.anomalyDuration {
-		if err := m.agentPostRequest(req, wafresponse, code, size, duration, rr.Header()); err != nil && m.debug {
+		if err := m.inspectorPostRequest(req, wafresponse, code, size, duration, rr.Header()); err != nil && m.debug {
 			log.Printf("ERROR: 'RPC.PostRequest' request failed:%s", err.Error())
 		}
 	}
@@ -242,11 +243,9 @@ func (m *Module) Inspector() Inspector {
 	return m.inspector
 }
 
-// agentPreRequest makes a prerequest RPC call to the agent
-// In general this is never to be used by end-users and is
-// only exposed for use in performance testing
-func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPCMsgOut, err error) {
-	// Create message to agent from the input request
+// inspectorPreRequest makes a prerequest call to the inspector
+func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out RPCMsgOut, err error) {
+	// Create message to the inspector from the input request
 	// see if we can read-in the post body
 
 	var postbody []byte
@@ -265,9 +264,9 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 		req.Body = ioutil.NopCloser(bytes.NewBuffer(postbody))
 	}
 
-	agentin := NewRPCMsgIn(req, postbody, -1, -1, -1, m.moduleVersion, m.serverVersion)
+	inspin := NewRPCMsgIn(req, postbody, -1, -1, -1, m.moduleVersion, m.serverVersion)
 
-	err = m.inspector.PreRequest(agentin, &out)
+	err = m.inspector.PreRequest(inspin, &out)
 	if err != nil {
 		return
 	}
@@ -283,7 +282,7 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 		req.Header.Add(kv[0], kv[1])
 	}
 
-	agentin2 = RPCMsgIn2{
+	inspin2 = RPCMsgIn2{
 		RequestID:      out.RequestID,
 		ResponseCode:   -1,
 		ResponseMillis: -1,
@@ -293,32 +292,32 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 	return
 }
 
-// agentPostRequest makes a postrequest RPC call to the agent
-func (m *Module) agentPostRequest(req *http.Request, agentResponse int32,
+// inspectorPostRequest makes a postrequest call to the inspector
+func (m *Module) inspectorPostRequest(req *http.Request, wafResponse int32,
 	code int, size int64, millis time.Duration, hout http.Header) error {
 	// Create message to agent from the input request
-	agentin := NewRPCMsgIn(req, nil, code, size, millis, m.moduleVersion, m.serverVersion)
-	agentin.WAFResponse = agentResponse
-	agentin.HeadersOut = filterHeaders(hout)
+	inspin := NewRPCMsgIn(req, nil, code, size, millis, m.moduleVersion, m.serverVersion)
+	inspin.WAFResponse = wafResponse
+	inspin.HeadersOut = filterHeaders(hout)
 
 	// TBD: Actually use the output
-	return m.inspector.PostRequest(agentin, &RPCMsgOut{})
+	return m.inspector.PostRequest(inspin, &RPCMsgOut{})
 }
 
-// agentUpdateRequest makes an updaterequest RPC call to the agent
-func (m *Module) agentUpdateRequest(agentin RPCMsgIn2) error {
+// inspectorUpdateRequest makes an updaterequest call to the inspector
+func (m *Module) inspectorUpdateRequest(inspin RPCMsgIn2) error {
 	// TBD: Actually use the output
-	return m.inspector.UpdateRequest(&agentin, &RPCMsgOut{})
+	return m.inspector.UpdateRequest(&inspin, &RPCMsgOut{})
 }
 
-// NewRPCMsgIn creates a agent message from a go http.Request object
+// NewRPCMsgIn creates a message from a go http.Request object
 // End-users of the golang module never need to use this
 // directly and it is only exposed for performance testing
 func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur time.Duration, module, server string) *RPCMsgIn {
 	// TODO: change to when request came in
 	now := time.Now().UTC()
 
-	// assemble an message to send to agent
+	// assemble an message to send to inspector
 	tlsProtocol := ""
 	tlsCipher := ""
 	scheme := "http"
