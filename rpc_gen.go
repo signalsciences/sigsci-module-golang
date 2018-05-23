@@ -953,7 +953,7 @@ func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "WAFResponse":
-			err = z.WAFResponse.DecodeMsg(dc)
+			z.WAFResponse, err = dc.ReadInt32()
 			if err != nil {
 				return
 			}
@@ -1008,7 +1008,7 @@ func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	err = z.WAFResponse.EncodeMsg(en)
+	err = en.WriteInt32(z.WAFResponse)
 	if err != nil {
 		return
 	}
@@ -1051,10 +1051,7 @@ func (z *RPCMsgOut) MarshalMsg(b []byte) (o []byte, err error) {
 	// map header, size 3
 	// string "WAFResponse"
 	o = append(o, 0x83, 0xab, 0x57, 0x41, 0x46, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65)
-	o, err = z.WAFResponse.MarshalMsg(o)
-	if err != nil {
-		return
-	}
+	o = msgp.AppendInt32(o, z.WAFResponse)
 	// string "RequestID"
 	o = append(o, 0xa9, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x44)
 	o = msgp.AppendString(o, z.RequestID)
@@ -1087,7 +1084,7 @@ func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "WAFResponse":
-			bts, err = z.WAFResponse.UnmarshalMsg(bts)
+			z.WAFResponse, bts, err = msgp.ReadInt32Bytes(bts)
 			if err != nil {
 				return
 			}
@@ -1137,7 +1134,7 @@ func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *RPCMsgOut) Msgsize() (s int) {
-	s = 1 + 12 + z.WAFResponse.Msgsize() + 10 + msgp.StringPrefixSize + len(z.RequestID) + 15 + msgp.ArrayHeaderSize
+	s = 1 + 12 + msgp.Int32Size + 10 + msgp.StringPrefixSize + len(z.RequestID) + 15 + msgp.ArrayHeaderSize
 	for zpez := range z.RequestHeaders {
 		s += msgp.ArrayHeaderSize
 		for zqke := range z.RequestHeaders[zpez] {

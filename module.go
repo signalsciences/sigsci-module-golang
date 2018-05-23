@@ -1,6 +1,7 @@
 package sigsci
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -15,6 +16,8 @@ import (
 	"github.com/signalsciences/tlstext"
 )
 
+const moduleVersion = "sigsci-module-golang " + version
+
 // Module is an http.Handler that wraps inbound communication and
 // sends it to the Signal Sciences Agent.
 type Module struct {
@@ -26,8 +29,11 @@ type Module struct {
 	anomalySize      int64
 	anomalyDuration  time.Duration
 	maxContentLength int64
-	ignoredMethods   map[string]bool
+	moduleVersion    string
+	serverVersion    string
 	inspector        Inspector
+	inspInit         InspectorInitFunc
+	inspFini         InspectorFiniFunc
 }
 
 // NewModule wraps an http.Handler use the Signal Sciences Agent
@@ -45,10 +51,8 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 		anomalySize:      512 * 1024,
 		anomalyDuration:  1 * time.Second,
 		maxContentLength: 100000,
-		ignoredMethods: map[string]bool{
-			"OPTIONS": true,
-			"CONNECT": true,
-		},
+		moduleVersion:    moduleVersion,
+		serverVersion:    runtime.Version(),
 	}
 
 	// override defaults from function args
@@ -77,14 +81,15 @@ func Version() string {
 }
 
 // Debug turns on debug logging
-func Debug() func(*Module) error {
+func Debug(enable bool) func(*Module) error {
 	return func(m *Module) error {
-		m.debug = true
+		m.debug = enable
 		return nil
 	}
 }
 
-// Socket is a function argument to set where send data to the agent
+// Socket is a function argument to set where send data to the
+// Signal Sciences Agent
 func Socket(network, address string) func(*Module) error {
 	return func(m *Module) error {
 		m.rpcNetwork = network
@@ -101,7 +106,7 @@ func Socket(network, address string) func(*Module) error {
 	}
 }
 
-// AnomalySize is a function argument to sent data to the agent if the
+// AnomalySize is a function argument to sent data to the inspector if the
 // response was abnormally large.
 func AnomalySize(size int64) func(*Module) error {
 	return func(m *Module) error {
@@ -110,7 +115,7 @@ func AnomalySize(size int64) func(*Module) error {
 	}
 }
 
-// AnomalyDuration is a function argument to send data to the agent if
+// AnomalyDuration is a function argument to send data to the inspector if
 // the response was abnormally slow
 func AnomalyDuration(dur time.Duration) func(*Module) error {
 	return func(m *Module) error {
@@ -129,7 +134,7 @@ func MaxContentLength(size int64) func(*Module) error {
 }
 
 // Timeout is a function argument that sets the time to wait until
-// receiving a reply from the agent
+// receiving a reply from the inspector
 func Timeout(t time.Duration) func(*Module) error {
 	return func(m *Module) error {
 		m.timeout = t
@@ -137,10 +142,33 @@ func Timeout(t time.Duration) func(*Module) error {
 	}
 }
 
-// CustomInspector is a function argument that sets a custom inspector
-func CustomInspector(obj Inspector) func(*Module) error {
+// ModuleIdentifier is a function argument that sets the module name
+// and version for custom setups.
+// The version should be a sem-version (e.g., "1.2.3")
+func ModuleIdentifier(name, version string) func(*Module) error {
 	return func(m *Module) error {
-		m.inspector = obj
+		m.moduleVersion = name + " " + version
+		return nil
+	}
+}
+
+// ServerIdentifier is a function argument that sets the serveru
+// identifier for custom setups
+func ServerIdentifier(id string) func(*Module) error {
+	return func(m *Module) error {
+		m.serverVersion = id
+		return nil
+	}
+}
+
+// CustomInspector is a function argument that sets a custom inspector,
+// an optional inspector initializer to decide if inspection should occur, and
+// an optional inspector finializer that can perform and post-inspection steps
+func CustomInspector(insp Inspector, init InspectorInitFunc, fini InspectorFiniFunc) func(*Module) error {
+	return func(m *Module) error {
+		m.inspector = insp
+		m.inspInit = init
+		m.inspFini = fini
 		return nil
 	}
 }
@@ -149,17 +177,21 @@ func CustomInspector(obj Inspector) func(*Module) error {
 func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	start := time.Now().UTC()
 
-	// Do not process ignored methods.
-	if m.ignoredMethods[req.Method] {
+	// Use the inspector init/fini functions if available
+	if m.inspInit != nil && !m.inspInit(req) {
+		// Fail open
 		m.handler.ServeHTTP(w, req)
 		return
 	}
+	if m.inspFini != nil {
+		defer m.inspFini(req)
+	}
 
-	agentin2, out, err := m.agentPreRequest(req)
+	inspin2, out, err := m.inspectorPreRequest(req)
 	if err != nil {
 		// Fail open
 		if m.debug {
-			log.Println("Error pushing prerequest to agent: ", err.Error())
+			log.Println("Error in prerequest to inspector: ", err.Error())
 		}
 		m.handler.ServeHTTP(w, req)
 		return
@@ -170,7 +202,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// this is why the default code is 200 and it only changes if WriteHeader is called.
 	rr := &responseRecorder{w, 200, 0}
 
-	wafresponse, _ := out.WAFResponse.Int()
+	wafresponse := out.WAFResponse
 	switch wafresponse {
 	case 406:
 		http.Error(rr, "you lose", int(wafresponse))
@@ -178,7 +210,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		// continue with normal request
 		m.handler.ServeHTTP(rr, req)
 	default:
-		log.Printf("ERROR: Received invalid response code from agent: %d", wafresponse)
+		log.Printf("ERROR: Received invalid response code from inspector: %d", wafresponse)
 		// continue with normal request
 		m.handler.ServeHTTP(rr, req)
 	}
@@ -188,57 +220,53 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	size := rr.size
 	duration := end.Sub(start)
 
-	if agentin2.RequestID != "" {
-		agentin2.ResponseCode = int32(code)
-		agentin2.ResponseSize = int64(size)
-		agentin2.ResponseMillis = int64(duration / time.Millisecond)
-		agentin2.HeadersOut = filterHeaders(rr.Header())
-		if err := m.agentUpdateRequest(agentin2); err != nil && m.debug {
+	if inspin2.RequestID != "" {
+		inspin2.ResponseCode = int32(code)
+		inspin2.ResponseSize = int64(size)
+		inspin2.ResponseMillis = int64(duration / time.Millisecond)
+		inspin2.HeadersOut = filterHeaders(rr.Header())
+		if err := m.inspectorUpdateRequest(inspin2); err != nil && m.debug {
 			log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
 		}
 		return
 	}
 
 	if code >= 300 || size >= m.anomalySize || duration >= m.anomalyDuration {
-		if err := m.agentPostRequest(req, int32(wafresponse), code, size, duration, rr.Header()); err != nil && m.debug {
+		if err := m.inspectorPostRequest(req, wafresponse, code, size, duration, rr.Header()); err != nil && m.debug {
 			log.Printf("ERROR: 'RPC.PostRequest' request failed:%s", err.Error())
 		}
 	}
 }
 
-// agentPreRequest makes a prerequest RPC call to the agent
-// In general this is never to be used by end-users and is
-// only exposed for use in performance testing
-func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPCMsgOut, err error) {
-	// Create message to agent from the input request
+// Inspector returns the configured inspector
+func (m *Module) Inspector() Inspector {
+	return m.inspector
+}
+
+// inspectorPreRequest makes a prerequest call to the inspector
+func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out RPCMsgOut, err error) {
+	// Create message to the inspector from the input request
 	// see if we can read-in the post body
 
-	postbody := ""
+	var postbody []byte
 	if readPost(req, m) {
 		// Read all of it and close
 		// if error, just keep going
 		// It's possible that is is error event
 		// but not sure what it is.  Likely
 		// the client disconnected.
-		buf, _ := ioutil.ReadAll(req.Body)
+		postbody, _ = ioutil.ReadAll(req.Body)
 		req.Body.Close()
-
-		// save a copy
-		postbody = string(buf)
 
 		// make a new reader so the next handler
 		// can still read the post normally as if
 		// nothing happened
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(buf))
+		req.Body = ioutil.NopCloser(bytes.NewBuffer(postbody))
 	}
 
-	// TODO: we make a full copy of the postbody, but it would
-	//  appear we don't really need to do this as it's going to be
-	//  encoded before.  Can we change NewRPCMsgIn to accept a []byte?
-	//
-	agentin := NewRPCMsgIn(req, postbody, -1, -1, -1)
+	inspin := NewRPCMsgIn(req, postbody, -1, -1, -1, m.moduleVersion, m.serverVersion)
 
-	err = m.inspector.PreRequest(agentin, &out)
+	err = m.inspector.PreRequest(inspin, &out)
 	if err != nil {
 		return
 	}
@@ -248,13 +276,13 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 		req.Header.Add("X-SigSci-RequestID", out.RequestID)
 	}
 
-	wafresponse, _ := out.WAFResponse.Int()
+	wafresponse := out.WAFResponse
 	req.Header.Add("X-SigSci-AgentResponse", strconv.Itoa(int(wafresponse)))
 	for _, kv := range out.RequestHeaders {
 		req.Header.Add(kv[0], kv[1])
 	}
 
-	agentin2 = RPCMsgIn2{
+	inspin2 = RPCMsgIn2{
 		RequestID:      out.RequestID,
 		ResponseCode:   -1,
 		ResponseMillis: -1,
@@ -264,31 +292,32 @@ func (m *Module) agentPreRequest(req *http.Request) (agentin2 RPCMsgIn2, out RPC
 	return
 }
 
-// agentPostRequest makes a postrequest RPC call to the agent
-func (m *Module) agentPostRequest(req *http.Request, agentResponse int32,
+// inspectorPostRequest makes a postrequest call to the inspector
+func (m *Module) inspectorPostRequest(req *http.Request, wafResponse int32,
 	code int, size int64, millis time.Duration, hout http.Header) error {
 	// Create message to agent from the input request
-	agentin := NewRPCMsgIn(req, "", code, size, millis)
-	agentin.WAFResponse = agentResponse
-	agentin.HeadersOut = filterHeaders(hout)
+	inspin := NewRPCMsgIn(req, nil, code, size, millis, m.moduleVersion, m.serverVersion)
+	inspin.WAFResponse = wafResponse
+	inspin.HeadersOut = filterHeaders(hout)
 
 	// TBD: Actually use the output
-	return m.inspector.PostRequest(agentin, &RPCMsgOut{})
+	return m.inspector.PostRequest(inspin, &RPCMsgOut{})
 }
 
-// agentUpdateRequest makes an updaterequest RPC call to the agent
-func (m *Module) agentUpdateRequest(agentin RPCMsgIn2) error {
+// inspectorUpdateRequest makes an updaterequest call to the inspector
+func (m *Module) inspectorUpdateRequest(inspin RPCMsgIn2) error {
 	// TBD: Actually use the output
-	return m.inspector.UpdateRequest(&agentin, &RPCMsgOut{})
+	return m.inspector.UpdateRequest(&inspin, &RPCMsgOut{})
 }
 
-const moduleVersion = "sigsci-module-golang " + version
-
-// NewRPCMsgIn creates a agent message from a go http.Request object
+// NewRPCMsgIn creates a message from a go http.Request object
 // End-users of the golang module never need to use this
 // directly and it is only exposed for performance testing
-func NewRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur time.Duration) *RPCMsgIn {
-	// assemble an message to send to agent
+func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur time.Duration, module, server string) *RPCMsgIn {
+	// TODO: change to when request came in
+	now := time.Now().UTC()
+
+	// assemble an message to send to inspector
 	tlsProtocol := ""
 	tlsCipher := ""
 	scheme := "http"
@@ -299,12 +328,12 @@ func NewRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur tim
 		tlsCipher = tlstext.CipherSuite(r.TLS.CipherSuite)
 	}
 	return &RPCMsgIn{
-		ModuleVersion:  moduleVersion,
-		ServerVersion:  runtime.Version(),
+		ModuleVersion:  module,
+		ServerVersion:  server,
 		ServerFlavor:   "", /* not sure what should be here */
 		ServerName:     r.Host,
-		Timestamp:      time.Now().UTC().Unix(), /* TODO: change to when request came in */
-		NowMillis:      time.Now().UTC().UnixNano() / 1e6,
+		Timestamp:      now.Unix(),
+		NowMillis:      now.UnixNano() / 1e6,
 		RemoteAddr:     stripPort(r.RemoteAddr),
 		Method:         r.Method,
 		Scheme:         scheme,
@@ -315,7 +344,7 @@ func NewRPCMsgIn(r *http.Request, postbody string, code int, size int64, dur tim
 		ResponseCode:   int32(code),
 		ResponseMillis: int64(dur / time.Millisecond),
 		ResponseSize:   size,
-		PostBody:       postbody,
+		PostBody:       string(postbody),
 		HeadersIn:      filterHeaders(r.Header),
 	}
 }
@@ -348,6 +377,14 @@ func (l *responseRecorder) WriteHeader(status int) {
 func (l *responseRecorder) Write(b []byte) (int, error) {
 	l.size += int64(len(b))
 	return l.w.Write(b)
+}
+
+func (l *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if h, ok := l.w.(http.Hijacker); ok {
+		return h.Hijack()
+	}
+	// Required for WebSockets to work
+	return nil, nil, fmt.Errorf("response writer (%T) does not implement http.Hijacker", l.w)
 }
 
 // readPost returns True if we should read a postbody or not
