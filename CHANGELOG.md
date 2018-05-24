@@ -7,6 +7,7 @@
 * Extended architecture to allow more flexibility
 * Updated response writer interface to allow for WebSocket use
 * Removed default filters on CONNECT/OPTIONS methods - now inspected by default
+* Standardized error page
 
 ## 1.3.1 2017-09-25
 

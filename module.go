@@ -205,7 +205,8 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	wafresponse := out.WAFResponse
 	switch wafresponse {
 	case 406:
-		http.Error(rr, "you lose", int(wafresponse))
+		status := int(wafresponse)
+		http.Error(rr, fmt.Sprintf("%d %s\n", status, http.StatusText(status)), status)
 	case 200:
 		// continue with normal request
 		m.handler.ServeHTTP(rr, req)
