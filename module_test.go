@@ -130,6 +130,7 @@ func TestModule(t *testing.T) {
 				http.Error(w, fmt.Sprintf("%d %s\n", status, http.StatusText(status)), status)
 			}),
 			Timeout(500*time.Millisecond),
+			Debug(true),
 			CustomInspector(newTestInspector(tt.resp, tt.tags), nil, nil),
 		)
 		if err != nil {
