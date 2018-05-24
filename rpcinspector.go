@@ -16,8 +16,8 @@ type RPCInspector struct {
 	Debug   bool
 }
 
-// InitModule sends a RPC.InitModule message to the agent
-func (ri *RPCInspector) InitModule(in *RPCMsgIn, out *RPCMsgOut) error {
+// ModuleInit sends a RPC.ModuleInit message to the agent
+func (ri *RPCInspector) ModuleInit(in *RPCMsgIn, out *RPCMsgOut) error {
 	conn, err := ri.getConnection()
 	if err != nil {
 		return err
@@ -25,12 +25,12 @@ func (ri *RPCInspector) InitModule(in *RPCMsgIn, out *RPCMsgOut) error {
 
 	rpcCodec := newMsgpClientCodec(conn)
 	client := rpc.NewClientWithCodec(rpcCodec)
-	err = client.Call("RPC.InitModule", in, out)
+	err = client.Call("RPC.ModuleInit", in, out)
 	client.Close() // TBD: reuse conn
 
 	// TBD: wrap error instead of prefixing
 	if err != nil {
-		return fmt.Errorf("unable to make RPC.InitModule call: %s", err)
+		return fmt.Errorf("unable to make RPC.ModuleInit call: %s", err)
 	}
 
 	return nil
