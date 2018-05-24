@@ -1,11 +1,18 @@
 package sigsci
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/tls"
+	"fmt"
 	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
 	"reflect"
+	"strconv"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestNewRPCMsgFromRequest(t *testing.T) {
@@ -90,4 +97,175 @@ func TestCheckContentType(t *testing.T) {
 			t.Errorf("[%d] case %q expected %v got %v", pos, tt.want, got)
 		}
 	}
+}
+
+func TestModule(t *testing.T) {
+	cases := []struct {
+		req  []byte // Raw HTTP request
+		resp int32  // Inspection response (200 or 406)
+		tags string // Any tags in the PreRequest call
+	}{
+		{genTestRequest("GET", "http://example.com/", "", ""), 200, ""},
+		{genTestRequest("GET", "http://example.com/", "", ""), 406, "XSS"},
+		{genTestRequest("GET", "http://example.com/", "", ""), 200, ""},
+		{genTestRequest("OPTIONS", "http://example.com/", "", ""), 200, ""},
+		{genTestRequest("OPTIONS", "http://example.com/", "", ""), 406, "XSS"},
+		{genTestRequest("OPTIONS", "http://example.com/", "", ""), 200, ""},
+		{genTestRequest("CONNECT", "http://example.com/", "", ""), 200, ""},
+		{genTestRequest("CONNECT", "http://example.com/", "", ""), 406, "XSS"},
+		{genTestRequest("CONNECT", "http://example.com/", "", ""), 200, ""},
+		{genTestRequest("POST", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 200, ""},
+		{genTestRequest("POST", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 406, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 200, ""},
+		{genTestRequest("PUT", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 200, ""},
+		{genTestRequest("PUT", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 406, "XSS"},
+		{genTestRequest("PUT", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 200, ""},
+	}
+
+	for pos, tt := range cases {
+		respstr := strconv.Itoa(int(tt.resp))
+		m, err := NewModule(
+			http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				status := http.StatusOK
+				http.Error(w, fmt.Sprintf("%d %s\n", status, http.StatusText(status)), status)
+			}),
+			Timeout(500*time.Millisecond),
+			CustomInspector(newTestInspector(tt.resp, tt.tags), nil, nil),
+		)
+		if err != nil {
+			t.Fatalf("test %d: Failed to create module: %s", pos, err)
+		}
+
+		req, err := requestParseRaw("127.0.0.1:12345", tt.req)
+		if err != nil {
+			t.Fatalf("test %d: Failed to parse request: %s\n%s", pos, err, tt.req)
+		}
+
+		if dump, err := httputil.DumpRequest(req, true); err == nil {
+			t.Log("CLIENT REQUEST:\n" + string(dump))
+		}
+
+		if hv := req.Header.Get(`X-Sigsci-Agentresponse`); hv != "" {
+			t.Errorf("test %d: unexpected request header %s=%s", pos, `X-Sigsci-Agentresponse`, hv)
+		}
+
+		w := httptest.NewRecorder()
+		m.ServeHTTP(w, req)
+		resp := w.Result()
+
+		if dump, err := httputil.DumpRequest(req, true); err == nil {
+			t.Log("SERVER REQUEST:\n" + string(dump))
+		}
+		if hv := req.Header.Get(`X-Sigsci-Agentresponse`); hv == "" || hv != respstr {
+			t.Errorf("test %d: unexpected request header %s=%s, expected %q", pos, `X-Sigsci-Agentresponse`, hv, respstr)
+		}
+		if len(tt.tags) > 0 {
+			if hv := req.Header.Get(`X-Sigsci-Requestid`); hv == "" {
+				t.Errorf("test %d: expected request header %s=%s", pos, `X-Sigsci-Requestid`, hv)
+			}
+		}
+
+		if dump, err := httputil.DumpResponse(resp, true); err == nil {
+			t.Log("SERVER RESPONSE:\n" + string(dump))
+		}
+		if resp.StatusCode != int(tt.resp) {
+			t.Errorf("test %d: unexpected status code=%d, expected=%d", pos, resp.StatusCode, tt.resp)
+		}
+
+	}
+}
+
+func genTestRequest(meth, uri, ctype, payload string) []byte {
+	var err error
+	var req *http.Request
+
+	if len(payload) > 0 {
+		req, err = http.NewRequest(meth, uri, strings.NewReader(payload))
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		req, err = http.NewRequest(meth, uri, nil)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	req.Header.Set(`User-Agent`, `SigSci Module Tester/0.1`)
+	if len(ctype) > 0 {
+		req.Header.Set(`Content-Type`, `application/x-www-form-urlencoded`)
+	}
+
+	// This will add some extra headers typically added by the client
+	dump, err := httputil.DumpRequestOut(req, true)
+	if err != nil {
+		panic(err)
+	}
+
+	return dump
+}
+
+// requestParseRaw creates a request from the given raw HTTP data
+func requestParseRaw(raddr string, raw []byte) (*http.Request, error) {
+	req, err := http.ReadRequest(bufio.NewReader(bytes.NewReader(raw)))
+	if err != nil {
+		return nil, err
+	}
+
+	// Set fields typically set by the server
+	req.RemoteAddr = raddr
+
+	return req, nil
+}
+
+// testInspector is a custom inspector that calls the simulator
+// harness within the golang module
+type testInspector struct {
+	resp int32  // Either 200 or 406
+	tags string // EX: "XSS" (csv)
+}
+
+func newTestInspector(resp int32, tags string) *testInspector {
+	return &testInspector{
+		resp: resp,
+		tags: tags,
+	}
+}
+
+func (insp *testInspector) ModuleInit(in *RPCMsgIn, out *RPCMsgOut) error {
+	out.WAFResponse = 200
+	out.RequestID = ""
+	out.RequestHeaders = nil
+	return nil
+}
+
+func (insp *testInspector) PreRequest(in *RPCMsgIn, out *RPCMsgOut) error {
+	out.WAFResponse = insp.resp
+	if len(insp.tags) > 0 {
+		out.RequestID = "0123456789abcdef01234567"
+		out.RequestHeaders = [][2]string{
+			{"X-SigSci-Tags", insp.tags},
+		}
+	} else {
+		out.RequestID = ""
+		out.RequestHeaders = nil
+	}
+
+	return nil
+}
+
+func (insp *testInspector) PostRequest(in *RPCMsgIn, out *RPCMsgOut) error {
+	out.WAFResponse = insp.resp
+	out.RequestID = ""
+	out.RequestHeaders = nil
+
+	return nil
+}
+
+func (insp *testInspector) UpdateRequest(in *RPCMsgIn2, out *RPCMsgOut) error {
+	out.WAFResponse = insp.resp
+	out.RequestID = ""
+	out.RequestHeaders = nil
+
+	return nil
 }
