@@ -1,6 +1,6 @@
 # GoLang Module Release Notes
 
-## Unreleased
+## 1.4.0 2018-05-24
 
 * Standardized release notes
 * Added support for multipart/form-data post
