@@ -72,6 +72,21 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 		}
 	}
 
+	now := time.Now().UTC()
+	in := RPCMsgIn{
+		ModuleVersion: m.moduleVersion,
+		ServerVersion: m.serverVersion,
+		ServerFlavor:  "",
+		Timestamp:     now.Unix(),
+		NowMillis:     now.UnixNano() / 1e6,
+	}
+	out := RPCMsgOut{}
+	if err := m.inspector.ModuleInit(&in, &out); err != nil {
+		if m.debug {
+			log.Println("Error in moduleinit to inspector: ", err.Error())
+		}
+	}
+
 	return &m, nil
 }
 
