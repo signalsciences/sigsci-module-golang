@@ -8,6 +8,7 @@
 * Updated response writer interface to allow for WebSocket use
 * Removed default filters on CONNECT/OPTIONS methods - now inspected by default
 * Standardized error page
+* Updated to contact agent on init for faster module registration
 
 ## 1.3.1 2017-09-25
 
