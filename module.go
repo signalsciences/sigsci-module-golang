@@ -244,6 +244,16 @@ func (m *Module) Inspector() Inspector {
 	return m.inspector
 }
 
+// Version returns the module version string
+func (m *Module) Version() string {
+	return m.moduleVersion
+}
+
+// ServerVersion returns the server version string
+func (m *Module) ServerVersion() string {
+	return m.serverVersion
+}
+
 // inspectorPreRequest makes a prerequest call to the inspector
 func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out RPCMsgOut, err error) {
 	// Create message to the inspector from the input request
