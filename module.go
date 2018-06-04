@@ -206,7 +206,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		// Fail open
 		if m.debug {
-			log.Println("Error in prerequest to inspector: ", err.Error())
+			log.Printf("ERROR: 'RPC.PreRequest' call failed (failing open): %s", err.Error())
 		}
 		m.handler.ServeHTTP(w, req)
 		return
@@ -226,7 +226,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		// continue with normal request
 		m.handler.ServeHTTP(rr, req)
 	default:
-		log.Printf("ERROR: Received invalid response code from inspector: %d", wafresponse)
+		log.Printf("ERROR: Received invalid response code from inspector (failing open): %d", wafresponse)
 		// continue with normal request
 		m.handler.ServeHTTP(rr, req)
 	}
@@ -249,7 +249,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if code >= 300 || size >= m.anomalySize || duration >= m.anomalyDuration {
 		if err := m.inspectorPostRequest(req, wafresponse, code, size, duration, rr.Header()); err != nil && m.debug {
-			log.Printf("ERROR: 'RPC.PostRequest' request failed:%s", err.Error())
+			log.Printf("ERROR: 'RPC.PostRequest' call failed: %s", err.Error())
 		}
 	}
 }
@@ -292,18 +292,25 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 
 	inspin := NewRPCMsgIn(req, postbody, -1, -1, -1, m.moduleVersion, m.serverVersion)
 
+	if m.debug {
+		log.Printf("DEBUG: Making PreRequest call to inspector: %s %s", inspin.Method, inspin.URI)
+	}
+
 	err = m.inspector.PreRequest(inspin, &out)
 	if err != nil {
+		if m.debug {
+			log.Printf("DEBUG: PreRequest call error (%s %s): %s", inspin.Method, inspin.URI, err)
+		}
 		return
 	}
 
 	// set any request headers
 	if out.RequestID != "" {
-		req.Header.Add("X-SigSci-RequestID", out.RequestID)
+		req.Header.Add("X-Sigsci-Requestid", out.RequestID)
 	}
 
 	wafresponse := out.WAFResponse
-	req.Header.Add("X-SigSci-AgentResponse", strconv.Itoa(int(wafresponse)))
+	req.Header.Add("X-Sigsci-Agentresponse", strconv.Itoa(int(wafresponse)))
 	for _, kv := range out.RequestHeaders {
 		req.Header.Add(kv[0], kv[1])
 	}
@@ -313,6 +320,11 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 		ResponseCode:   -1,
 		ResponseMillis: -1,
 		ResponseSize:   -1,
+	}
+
+	if m.debug {
+		tags := req.Header.Get("X-Sigsci-Tags")
+		log.Printf("DEBUG: PreRequest call (%s %s): %d RequestID=%s Tags=%v", inspin.Method, inspin.URI, wafresponse, out.RequestID, tags)
 	}
 
 	return
@@ -326,14 +338,36 @@ func (m *Module) inspectorPostRequest(req *http.Request, wafResponse int32,
 	inspin.WAFResponse = wafResponse
 	inspin.HeadersOut = filterHeaders(hout)
 
+	if m.debug {
+		log.Printf("DEBUG: Making PostRequest call to inspector: %s %s", inspin.Method, inspin.URI)
+	}
+
 	// TBD: Actually use the output
-	return m.inspector.PostRequest(inspin, &RPCMsgOut{})
+	err := m.inspector.PostRequest(inspin, &RPCMsgOut{})
+	if err != nil {
+		if m.debug {
+			log.Printf("DEBUG: PostRequest call error (%s %s): %s", inspin.Method, inspin.URI, err)
+		}
+	}
+
+	return err
 }
 
 // inspectorUpdateRequest makes an updaterequest call to the inspector
 func (m *Module) inspectorUpdateRequest(inspin RPCMsgIn2) error {
+	if m.debug {
+		log.Printf("DEBUG: Making UpdateRequest call to inspector: RequestID=%s", inspin.RequestID)
+	}
+
 	// TBD: Actually use the output
-	return m.inspector.UpdateRequest(&inspin, &RPCMsgOut{})
+	err := m.inspector.UpdateRequest(&inspin, &RPCMsgOut{})
+	if err != nil {
+		if m.debug {
+			log.Printf("DEBUG: UpdateRequest call error (RequestID=%s): %s", inspin.RequestID, err)
+		}
+	}
+
+	return err
 }
 
 // NewRPCMsgIn creates a message from a go http.Request object
