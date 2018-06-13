@@ -240,7 +240,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		inspin2.ResponseCode = int32(code)
 		inspin2.ResponseSize = int64(size)
 		inspin2.ResponseMillis = int64(duration / time.Millisecond)
-		inspin2.HeadersOut = filterHeaders(rr.Header())
+		inspin2.HeadersOut = convertHeaders(rr.Header())
 		if err := m.inspectorUpdateRequest(inspin2); err != nil && m.debug {
 			log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
 		}
@@ -336,7 +336,7 @@ func (m *Module) inspectorPostRequest(req *http.Request, wafResponse int32,
 	// Create message to agent from the input request
 	inspin := NewRPCMsgIn(req, nil, code, size, millis, m.moduleVersion, m.serverVersion)
 	inspin.WAFResponse = wafResponse
-	inspin.HeadersOut = filterHeaders(hout)
+	inspin.HeadersOut = convertHeaders(hout)
 
 	if m.debug {
 		log.Printf("DEBUG: Making PostRequest call to inspector: %s %s", inspin.Method, inspin.URI)
@@ -387,6 +387,15 @@ func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur tim
 		tlsProtocol = tlstext.Version(r.TLS.Version)
 		tlsCipher = tlstext.CipherSuite(r.TLS.CipherSuite)
 	}
+
+	// golang removes Host header from req.Header map and
+	// promotes it to r.Host field. Add it back as the first header.
+	// See: https://github.sigsci.in/engineering/sigsci/issues/8336
+	hin := convertHeaders(r.Header)
+	if len(r.Host) > 0 {
+		hin = append([][2]string{{"Host", r.Host}}, hin...)
+	}
+
 	return &RPCMsgIn{
 		ModuleVersion:  module,
 		ServerVersion:  server,
@@ -405,7 +414,7 @@ func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur tim
 		ResponseMillis: int64(dur / time.Millisecond),
 		ResponseSize:   size,
 		PostBody:       string(postbody),
-		HeadersIn:      filterHeaders(r.Header),
+		HeadersIn:      hin,
 	}
 }
 
@@ -496,12 +505,9 @@ func checkContentType(s string) bool {
 }
 
 // converts a http.Header map to a [][2]string
-func filterHeaders(h http.Header) [][2]string {
+func convertHeaders(h http.Header) [][2]string {
 	// get headers
 	out := make([][2]string, 0, len(h)+1)
-
-	// interestingly golang appears to remove the Host header
-	// headersin = append(headersin, [2]string{"Host", r.Host})
 
 	for key, values := range h {
 		for _, value := range values {

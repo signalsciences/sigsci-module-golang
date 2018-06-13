@@ -34,7 +34,7 @@ func TestNewRPCMsgFromRequest(t *testing.T) {
 		URI:        "http://localhost/",
 		Protocol:   "HTTP/1.1",
 		RemoteAddr: "127.0.0.1",
-		HeadersIn:  [][2]string{{"If-None-Match", `W/"wyzzy"`}},
+		HeadersIn:  [][2]string{{"Host", "localhost"}, {"If-None-Match", `W/"wyzzy"`}},
 	}
 	eq := func(got, want RPCMsgIn) (ne string, equal bool) {
 		switch {
