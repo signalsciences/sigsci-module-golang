@@ -1,6 +1,7 @@
 # GoLang Module Release Notes
 
-## Unreleased
+## 1.4.2 2018-06-13
+* Improved handling of the `Host` request header
 
 ## 1.4.1 2018-06-04
 * Improved error and debug messages
