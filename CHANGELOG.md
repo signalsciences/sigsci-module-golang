@@ -2,6 +2,7 @@
 
 ## 1.4.2 2018-06-15
 * Improved handling of the `Host` request header
+* Improved debugging output
 
 ## 1.4.1 2018-06-04
 * Improved error and debug messages

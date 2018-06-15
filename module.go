@@ -202,6 +202,9 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		defer m.inspFini(req)
 	}
 
+	if m.debug {
+		log.Printf("DEBUG: calling 'RPC.PreRequest' for inspection: method=%s host=%s url=%s", req.Method, req.Host, req.URL)
+	}
 	inspin2, out, err := m.inspectorPreRequest(req)
 	if err != nil {
 		// Fail open
@@ -241,6 +244,9 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		inspin2.ResponseSize = int64(size)
 		inspin2.ResponseMillis = int64(duration / time.Millisecond)
 		inspin2.HeadersOut = convertHeaders(rr.Header())
+		if m.debug {
+			log.Printf("DEBUG: calling 'RPC.UpdateRequest' due to returned requestid=%s: method=%s host=%s url=%s code=%d size=%d duration=%s", inspin2.RequestID, req.Method, req.Host, req.URL, code, size, duration)
+		}
 		if err := m.inspectorUpdateRequest(inspin2); err != nil && m.debug {
 			log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
 		}
@@ -248,6 +254,9 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if code >= 300 || size >= m.anomalySize || duration >= m.anomalyDuration {
+		if m.debug {
+			log.Printf("DEBUG: calling 'RPC.PostRequest' due to anomaly: method=%s host=%s url=%s code=%d size=%d duration=%s", req.Method, req.Host, req.URL, code, size, duration)
+		}
 		if err := m.inspectorPostRequest(req, wafresponse, code, size, duration, rr.Header()); err != nil && m.debug {
 			log.Printf("ERROR: 'RPC.PostRequest' call failed: %s", err.Error())
 		}
