@@ -23,6 +23,7 @@ gometalinter \
         --enable=gofmt \
         --enable=gosimple \
         --enable=unused \
+        --enable=vet \
         --exclude=_gen.go \
 	--exclude=/usr/local/go/src/net/lookup_unix.go \
         .
