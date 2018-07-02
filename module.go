@@ -103,7 +103,7 @@ func Debug(enable bool) func(*Module) error {
 	}
 }
 
-// Socket is a function argument to set where send data to the
+// Socket is a function argument to set where to send data to the
 // Signal Sciences Agent
 func Socket(network, address string) func(*Module) error {
 	return func(m *Module) error {
@@ -121,8 +121,8 @@ func Socket(network, address string) func(*Module) error {
 	}
 }
 
-// AnomalySize is a function argument to sent data to the inspector if the
-// response was abnormally large.
+// AnomalySize is a function argument to send data to the inspector if the
+// response was abnormally large
 func AnomalySize(size int64) func(*Module) error {
 	return func(m *Module) error {
 		m.anomalySize = size
@@ -139,7 +139,7 @@ func AnomalyDuration(dur time.Duration) func(*Module) error {
 	}
 }
 
-// MaxContentLength is a functional argument to set the maximum post
+// MaxContentLength is a function argument to set the maximum post
 // body length that will be processed
 func MaxContentLength(size int64) func(*Module) error {
 	return func(m *Module) error {
@@ -167,7 +167,7 @@ func ModuleIdentifier(name, version string) func(*Module) error {
 	}
 }
 
-// ServerIdentifier is a function argument that sets the serveru
+// ServerIdentifier is a function argument that sets the server
 // identifier for custom setups
 func ServerIdentifier(id string) func(*Module) error {
 	return func(m *Module) error {
@@ -178,7 +178,7 @@ func ServerIdentifier(id string) func(*Module) error {
 
 // CustomInspector is a function argument that sets a custom inspector,
 // an optional inspector initializer to decide if inspection should occur, and
-// an optional inspector finializer that can perform and post-inspection steps
+// an optional inspector finalizer that can perform and post-inspection steps
 func CustomInspector(insp Inspector, init InspectorInitFunc, fini InspectorFiniFunc) func(*Module) error {
 	return func(m *Module) error {
 		m.inspector = insp
@@ -287,8 +287,8 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 	if readPost(req, m) {
 		// Read all of it and close
 		// if error, just keep going
-		// It's possible that is is error event
-		// but not sure what it is.  Likely
+		// It's possible that it is an error event
+		// but not sure what it is. Likely
 		// the client disconnected.
 		postbody, _ = ioutil.ReadAll(req.Body)
 		req.Body.Close()
@@ -465,7 +465,7 @@ func (l *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return nil, nil, fmt.Errorf("response writer (%T) does not implement http.Hijacker", l.w)
 }
 
-// readPost returns True if we should read a postbody or not
+// readPost returns True if we should read a postbody
 func readPost(req *http.Request, m *Module) bool {
 	// nothing to do
 	if req.Body == nil {
