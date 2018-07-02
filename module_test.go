@@ -94,7 +94,7 @@ func TestCheckContentType(t *testing.T) {
 	for pos, tt := range cases {
 		got := checkContentType(tt.content)
 		if got != tt.want {
-			t.Errorf("[%d] case %q expected %v got %v", pos, tt.want, got)
+			t.Errorf("[%d] expected %v got %v", pos, tt.want, got)
 		}
 	}
 }
