@@ -2,6 +2,7 @@
 
 ## Unreleased
 * Improved error and debug messages
+* Exposed more functionality to allow easier extending
 
 ## 1.4.2 2018-06-15
 * Improved handling of the `Host` request header
