@@ -94,6 +94,7 @@ func (c msgpClientCodec) ReadResponseHeader(r *rpc.Response) error {
 		}
 		return fmt.Errorf("ReadResponseHeader failed in initial array: %s", err)
 	}
+
 	msgtype, err := c.dec.ReadUint()
 	if err != nil || msgtype != 1 {
 		if cerr := checkError(err); cerr != nil {
@@ -105,14 +106,15 @@ func (c msgpClientCodec) ReadResponseHeader(r *rpc.Response) error {
 		return fmt.Errorf("ReadResponseHeader failed in message type: %s", err)
 	}
 
-	// Sequence ID
-	_, err = c.dec.ReadUint()
+	seqID, err := c.dec.ReadUint()
 	if err != nil {
 		if cerr := checkError(err); cerr != nil {
 			return cerr
 		}
 		return fmt.Errorf("ReadResponseHeader failed in error type: %s", err)
 	}
+	r.Seq = uint64(seqID)
+
 	err = c.dec.ReadNil()
 	if err != nil {
 		if cerr := checkError(err); cerr != nil {
