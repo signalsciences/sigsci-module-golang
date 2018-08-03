@@ -2,7 +2,6 @@ package sigsci
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"net/rpc"
 	"time"
@@ -19,18 +18,16 @@ type RPCInspector struct {
 // ModuleInit sends a RPC.ModuleInit message to the agent
 func (ri *RPCInspector) ModuleInit(in *RPCMsgIn, out *RPCMsgOut) error {
 	conn, err := ri.getConnection()
-	if err != nil {
-		return err
+	if err == nil {
+		rpcCodec := newMsgpClientCodec(conn)
+		client := rpc.NewClientWithCodec(rpcCodec)
+		err = client.Call("RPC.ModuleInit", in, out)
+		client.Close() // TBD: reuse conn
 	}
-
-	rpcCodec := newMsgpClientCodec(conn)
-	client := rpc.NewClientWithCodec(rpcCodec)
-	err = client.Call("RPC.ModuleInit", in, out)
-	client.Close() // TBD: reuse conn
 
 	// TBD: wrap error instead of prefixing
 	if err != nil {
-		return fmt.Errorf("unable to make RPC.ModuleInit call: %s", err)
+		return fmt.Errorf("RPC.ModuleInit call failed: %s", err)
 	}
 
 	return nil
@@ -39,18 +36,16 @@ func (ri *RPCInspector) ModuleInit(in *RPCMsgIn, out *RPCMsgOut) error {
 // PreRequest sends a RPC.PreRequest message to the agent
 func (ri *RPCInspector) PreRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 	conn, err := ri.getConnection()
-	if err != nil {
-		return err
+	if err == nil {
+		rpcCodec := newMsgpClientCodec(conn)
+		client := rpc.NewClientWithCodec(rpcCodec)
+		err = client.Call("RPC.PreRequest", in, out)
+		client.Close() // TBD: reuse conn
 	}
-
-	rpcCodec := newMsgpClientCodec(conn)
-	client := rpc.NewClientWithCodec(rpcCodec)
-	err = client.Call("RPC.PreRequest", in, out)
-	client.Close() // TBD: reuse conn
 
 	// TBD: wrap error instead of prefixing
 	if err != nil {
-		return fmt.Errorf("unable to make RPC.PreRequest call: %s", err)
+		return fmt.Errorf("RPC.PreRequest call failed: %s", err)
 	}
 
 	return nil
@@ -59,25 +54,23 @@ func (ri *RPCInspector) PreRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 // PostRequest sends a RPC.PostRequest message to the agent
 func (ri *RPCInspector) PostRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 	conn, err := ri.getConnection()
-	if err != nil {
-		return err
+	if err == nil {
+		rpcCodec := newMsgpClientCodec(conn)
+		client := rpc.NewClientWithCodec(rpcCodec)
+
+		var rpcout int
+		err = client.Call("RPC.PostRequest", in, &rpcout)
+		client.Close()
+
+		// Fake the output until RPC call is updated
+		out.WAFResponse = 200
+		out.RequestID = ""
+		out.RequestHeaders = nil
 	}
-
-	rpcCodec := newMsgpClientCodec(conn)
-	client := rpc.NewClientWithCodec(rpcCodec)
-
-	var rpcout int
-	err = client.Call("RPC.PostRequest", in, &rpcout)
-	client.Close()
-
-	// Fake the output until RPC call is updated
-	out.WAFResponse = 200
-	out.RequestID = ""
-	out.RequestHeaders = nil
 
 	// TBD: wrap error instead of prefixing
 	if err != nil {
-		return fmt.Errorf("unable to make RPC.PostRequest call: %s", err)
+		return fmt.Errorf("RPC.PostRequest call failed: %s", err)
 	}
 
 	return nil
@@ -86,29 +79,24 @@ func (ri *RPCInspector) PostRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 // UpdateRequest sends a RPC.UpdateRequest message to the agent
 func (ri *RPCInspector) UpdateRequest(in *RPCMsgIn2, out *RPCMsgOut) error {
 	conn, err := ri.getConnection()
-	if err != nil {
-		return err
+	if err == nil {
+		rpcCodec := newMsgpClientCodec(conn)
+		client := rpc.NewClientWithCodec(rpcCodec)
+
+		var rpcout int
+		err = client.Call("RPC.UpdateRequest", in, &rpcout)
+		client.Close()
+
+		// Fake the output until RPC call is updated
+		out.WAFResponse = 200
+		out.RequestID = ""
+		out.RequestHeaders = nil
 	}
-
-	rpcCodec := newMsgpClientCodec(conn)
-	client := rpc.NewClientWithCodec(rpcCodec)
-
-	var rpcout int
-	err = client.Call("RPC.UpdateRequest", in, &rpcout)
-	client.Close()
-
-	// Fake the output until RPC call is updated
-	out.WAFResponse = 200
-	out.RequestID = ""
-	out.RequestHeaders = nil
 
 	return err
 }
 
 func (ri *RPCInspector) makeConnection() (net.Conn, error) {
-	if ri.Debug {
-		log.Printf("Making a new RPC connection.")
-	}
 	conn, err := net.DialTimeout(ri.Network, ri.Address, ri.Timeout)
 	if err != nil {
 		return nil, err

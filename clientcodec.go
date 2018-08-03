@@ -1,9 +1,9 @@
 package sigsci
 
 import (
-	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/rpc"
 
 	"github.com/tinylib/msgp/msgp"
@@ -60,37 +60,74 @@ func (c msgpClientCodec) WriteRequest(r *rpc.Request, x interface{}) error {
 	}
 
 	if err := c.enc.Flush(); err != nil {
-		return fmt.Errorf("WriteRequest flush failed: %s", err)
+		return fmt.Errorf("WriteRequest failed in flushing: %s", err)
 	}
 
+	return nil
+}
+
+// checkError checks the error against known errors, does any fixups and returns an error to indicate it is a known error that should not be handled further as well as the replaced error. A nil error is returned if the original error should be handled further.
+func checkError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if err == io.EOF {
+		return err
+	}
+	if nerr, ok := err.(net.Error); ok {
+		if nerr.Timeout() {
+			return nerr
+		}
+	}
 	return nil
 }
 
 func (c msgpClientCodec) ReadResponseHeader(r *rpc.Response) error {
 	sz, err := c.dec.ReadArrayHeader()
 	if err != nil || sz != 4 {
-		return errors.New("Failed ReadResponseHeader on initial array")
+		if cerr := checkError(err); cerr != nil {
+			return cerr
+		}
+		if err == nil && sz != 4 {
+			err = fmt.Errorf("invalid array size %d", sz)
+		}
+		return fmt.Errorf("ReadResponseHeader failed in initial array: %s", err)
 	}
 	msgtype, err := c.dec.ReadUint()
 	if err != nil || msgtype != 1 {
-		return errors.New("Failed ReadResponseHeader in mesage type")
+		if cerr := checkError(err); cerr != nil {
+			return cerr
+		}
+		if err == nil && msgtype != 1 {
+			err = fmt.Errorf("invalid message type %d", msgtype)
+		}
+		return fmt.Errorf("ReadResponseHeader failed in message type: %s", err)
 	}
 
 	// Sequence ID
 	_, err = c.dec.ReadUint()
 	if err != nil {
-		return errors.New("Failed ReadResponseHeader in error type")
+		if cerr := checkError(err); cerr != nil {
+			return cerr
+		}
+		return fmt.Errorf("ReadResponseHeader failed in error type: %s", err)
 	}
 	err = c.dec.ReadNil()
 	if err != nil {
+		if cerr := checkError(err); cerr != nil {
+			return cerr
+		}
 		// if there is an error maybe its not nil
 		//  try to read string.  if still an error
 		//  then assume its bad response
 		rawerr, err := c.dec.ReadString()
 		if err != nil {
-			return errors.New("Failed ReadResponseHeader: Unable to read arg3: " + err.Error())
+			if cerr := checkError(err); cerr != nil {
+				return cerr
+			}
+			return fmt.Errorf("ReadResponseHeader failed in error message: %s", err)
 		}
-		return errors.New("Remote Error: " + string(rawerr))
+		return fmt.Errorf("remote error: %s", rawerr)
 	}
 	return nil
 }
@@ -103,7 +140,10 @@ func (c msgpClientCodec) ReadResponseBody(x interface{}) error {
 	// if its a decode-able object, then sort it out.
 	if obj, ok := x.(msgp.Decodable); ok {
 		if err := obj.DecodeMsg(c.dec); err != nil {
-			return fmt.Errorf("failed ReadResponseBody in obj decode: %s", err)
+			if cerr := checkError(err); cerr != nil {
+				return cerr
+			}
+			return fmt.Errorf("ReadResponseBody failed in obj decode: %s", err)
 		}
 		return nil
 	}
@@ -114,11 +154,14 @@ func (c msgpClientCodec) ReadResponseBody(x interface{}) error {
 	if xint, ok := x.(*int); ok {
 		val, err := c.dec.ReadInt()
 		if err != nil {
-			return fmt.Errorf("failed ReadResponseBody in int decode: %s", err)
+			if cerr := checkError(err); cerr != nil {
+				return cerr
+			}
+			return fmt.Errorf("ReadResponseBody failed in int decode: %s", err)
 		}
 		*xint = val
 		return nil
 	}
 
-	return fmt.Errorf("Unable to decode ReadResponseBody")
+	return fmt.Errorf("ReadResponseBody failed: unable to decode")
 }
