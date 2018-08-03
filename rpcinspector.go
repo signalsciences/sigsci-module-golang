@@ -9,11 +9,12 @@ import (
 
 // RPCInspector is an Inspector implemented as RPC calls to the agent
 type RPCInspector struct {
-	Network          string
-	Address          string
-	Timeout          time.Duration
-	Debug            bool
-	GetRPCClientFunc func() (*rpc.Client, error)
+	Network           string
+	Address           string
+	Timeout           time.Duration
+	Debug             bool
+	InitRPCClientFunc func() (*rpc.Client, error)
+	FiniRPCClientFunc func(*rpc.Client, error)
 }
 
 // ModuleInit sends a RPC.ModuleInit message to the agent
@@ -21,7 +22,7 @@ func (ri *RPCInspector) ModuleInit(in *RPCMsgIn, out *RPCMsgOut) error {
 	client, err := ri.GetRPCClient()
 	if err == nil {
 		err = client.Call("RPC.ModuleInit", in, out)
-		client.Close() // TBD: reuse conn
+		ri.CloseRPCClient(client, err)
 	}
 
 	// TBD: wrap error instead of prefixing
@@ -37,7 +38,7 @@ func (ri *RPCInspector) PreRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 	client, err := ri.GetRPCClient()
 	if err == nil {
 		err = client.Call("RPC.PreRequest", in, out)
-		client.Close() // TBD: reuse conn
+		ri.CloseRPCClient(client, err)
 	}
 
 	// TBD: wrap error instead of prefixing
@@ -54,7 +55,7 @@ func (ri *RPCInspector) PostRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 	if err == nil {
 		var rpcout int
 		err = client.Call("RPC.PostRequest", in, &rpcout)
-		client.Close()
+		ri.CloseRPCClient(client, err)
 
 		// Fake the output until RPC call is updated
 		out.WAFResponse = 200
@@ -77,7 +78,7 @@ func (ri *RPCInspector) UpdateRequest(in *RPCMsgIn2, out *RPCMsgOut) error {
 
 		var rpcout int
 		err = client.Call("RPC.UpdateRequest", in, &rpcout)
-		client.Close()
+		ri.CloseRPCClient(client, err)
 
 		// Fake the output until RPC call is updated
 		out.WAFResponse = 200
@@ -90,8 +91,8 @@ func (ri *RPCInspector) UpdateRequest(in *RPCMsgIn2, out *RPCMsgOut) error {
 
 // GetRPCClient gets a RPC client
 func (ri *RPCInspector) GetRPCClient() (*rpc.Client, error) {
-	if ri.GetRPCClientFunc != nil {
-		return ri.GetRPCClientFunc()
+	if ri.InitRPCClientFunc != nil {
+		return ri.InitRPCClientFunc()
 	}
 
 	conn, err := ri.getConnection()
@@ -100,6 +101,15 @@ func (ri *RPCInspector) GetRPCClient() (*rpc.Client, error) {
 	}
 	rpcCodec := NewMsgpClientCodec(conn)
 	return rpc.NewClientWithCodec(rpcCodec), nil
+}
+
+// CloseRPCClient closes a RPC client
+func (ri *RPCInspector) CloseRPCClient(client *rpc.Client, err error) {
+	if ri.FiniRPCClientFunc != nil {
+		ri.FiniRPCClientFunc(client, err)
+		return
+	}
+	client.Close()
 }
 
 func (ri *RPCInspector) makeConnection() (net.Conn, error) {
