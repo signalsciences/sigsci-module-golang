@@ -9,18 +9,17 @@ import (
 
 // RPCInspector is an Inspector implemented as RPC calls to the agent
 type RPCInspector struct {
-	Network string
-	Address string
-	Timeout time.Duration
-	Debug   bool
+	Network          string
+	Address          string
+	Timeout          time.Duration
+	Debug            bool
+	GetRPCClientFunc func() (*rpc.Client, error)
 }
 
 // ModuleInit sends a RPC.ModuleInit message to the agent
 func (ri *RPCInspector) ModuleInit(in *RPCMsgIn, out *RPCMsgOut) error {
-	conn, err := ri.getConnection()
+	client, err := ri.GetRPCClient()
 	if err == nil {
-		rpcCodec := newMsgpClientCodec(conn)
-		client := rpc.NewClientWithCodec(rpcCodec)
 		err = client.Call("RPC.ModuleInit", in, out)
 		client.Close() // TBD: reuse conn
 	}
@@ -35,10 +34,8 @@ func (ri *RPCInspector) ModuleInit(in *RPCMsgIn, out *RPCMsgOut) error {
 
 // PreRequest sends a RPC.PreRequest message to the agent
 func (ri *RPCInspector) PreRequest(in *RPCMsgIn, out *RPCMsgOut) error {
-	conn, err := ri.getConnection()
+	client, err := ri.GetRPCClient()
 	if err == nil {
-		rpcCodec := newMsgpClientCodec(conn)
-		client := rpc.NewClientWithCodec(rpcCodec)
 		err = client.Call("RPC.PreRequest", in, out)
 		client.Close() // TBD: reuse conn
 	}
@@ -53,11 +50,8 @@ func (ri *RPCInspector) PreRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 
 // PostRequest sends a RPC.PostRequest message to the agent
 func (ri *RPCInspector) PostRequest(in *RPCMsgIn, out *RPCMsgOut) error {
-	conn, err := ri.getConnection()
+	client, err := ri.GetRPCClient()
 	if err == nil {
-		rpcCodec := newMsgpClientCodec(conn)
-		client := rpc.NewClientWithCodec(rpcCodec)
-
 		var rpcout int
 		err = client.Call("RPC.PostRequest", in, &rpcout)
 		client.Close()
@@ -78,10 +72,8 @@ func (ri *RPCInspector) PostRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 
 // UpdateRequest sends a RPC.UpdateRequest message to the agent
 func (ri *RPCInspector) UpdateRequest(in *RPCMsgIn2, out *RPCMsgOut) error {
-	conn, err := ri.getConnection()
+	client, err := ri.GetRPCClient()
 	if err == nil {
-		rpcCodec := newMsgpClientCodec(conn)
-		client := rpc.NewClientWithCodec(rpcCodec)
 
 		var rpcout int
 		err = client.Call("RPC.UpdateRequest", in, &rpcout)
@@ -94,6 +86,20 @@ func (ri *RPCInspector) UpdateRequest(in *RPCMsgIn2, out *RPCMsgOut) error {
 	}
 
 	return err
+}
+
+// GetRPCClient gets a RPC client
+func (ri *RPCInspector) GetRPCClient() (*rpc.Client, error) {
+	if ri.GetRPCClientFunc != nil {
+		return ri.GetRPCClientFunc()
+	}
+
+	conn, err := ri.getConnection()
+	if err != nil {
+		return nil, err
+	}
+	rpcCodec := NewMsgpClientCodec(conn)
+	return rpc.NewClientWithCodec(rpcCodec), nil
 }
 
 func (ri *RPCInspector) makeConnection() (net.Conn, error) {

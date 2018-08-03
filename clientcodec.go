@@ -22,7 +22,8 @@ type msgpClientCodec struct {
 	c   io.Closer
 }
 
-func newMsgpClientCodec(conn io.ReadWriteCloser) rpc.ClientCodec {
+// NewMsgpClientCodec creates a new rpc.ClientCodec from an existing connection
+func NewMsgpClientCodec(conn io.ReadWriteCloser) rpc.ClientCodec {
 	return &msgpClientCodec{
 		dec: msgp.NewReader(conn),
 		enc: msgp.NewWriter(conn),
