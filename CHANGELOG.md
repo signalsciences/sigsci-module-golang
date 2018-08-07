@@ -1,6 +1,6 @@
 # GoLang Module Release Notes
 
-## Unreleased
+## 1.4.3 2018-08-07
 * Improved error and debug messages
 * Exposed more functionality to allow easier extending
 
