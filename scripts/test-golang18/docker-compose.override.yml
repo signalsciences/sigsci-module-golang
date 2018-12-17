@@ -9,5 +9,5 @@ services:
   # needs stuff in ../../examples.  Consider moving.
   web:
     volumes:
-      - ../..:/go/src/github.sigsci.in/engineering/sigsci-module-golang
-    command: [ "go", "run", "/go/src/github.sigsci.in/engineering/sigsci-module-golang/examples/mtest/main.go" ]
+      - ../..:/go/src/github.com/signalsciences/sigsci-module-golang
+    command: [ "go", "run", "/go/src/github.com/signalsciences/sigsci-module-golang/examples/mtest/main.go" ]

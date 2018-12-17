@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	sigsci "github.sigsci.in/engineering/sigsci-module-golang"
+	sigsci "github.com/signalsciences/sigsci-module-golang"
 )
 
 func helloworld(w http.ResponseWriter, r *http.Request) {

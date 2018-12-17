@@ -399,7 +399,7 @@ func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur tim
 
 	// golang removes Host header from req.Header map and
 	// promotes it to r.Host field. Add it back as the first header.
-	// See: https://github.sigsci.in/engineering/sigsci/issues/8336
+	// See: https://github.com/signalsciences/sigsci/issues/8336
 	hin := convertHeaders(r.Header)
 	if len(r.Host) > 0 {
 		hin = append([][2]string{{"Host", r.Host}}, hin...)
