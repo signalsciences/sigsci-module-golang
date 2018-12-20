@@ -16,6 +16,7 @@ init:  ## install gometalinter and msgp locally
 
 
 clean: ## cleanup
+	find . -name 'goroot' -type d | xargs rm -rf
 	rm -rf artifacts
 	find . -name '*.log' | xargs rm -f
 	go clean ./...
