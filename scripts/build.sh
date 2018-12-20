@@ -4,6 +4,7 @@ set -ex
 echo "package sigsci" > version.go
 echo "" >> version.go
 echo "const version = \"$(cat VERSION)\"" >> version.go
+find . -name "goroot" -type d | xargs rm -rf
 go generate ./...
 
 # make sure files made in docker are readable by all
