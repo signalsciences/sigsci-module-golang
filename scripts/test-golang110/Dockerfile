@@ -1,9 +1,6 @@
-FROM golang:1.9.2-alpine3.6
+FROM golang:1.10.6-alpine3.8
 
-RUN apk --update add git
-RUN /bin/true \
-    && go get github.com/signalsciences/tlstext \
-    && go get github.com/tinylib/msgp/...
+COPY goroot/ /go/
 
 # we will mount the current directory here
 VOLUME [ "/go/src/github.com/signalsciences/sigsci-module-golang" ]

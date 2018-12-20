@@ -10,7 +10,7 @@ test: ## build and run integration test
 
 init:  ## install gometalinter and msgp locally
 	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install
+	gometalinter --install --debug
 	go get -u github.com/tinylib/msgp/msgp
 	go get .
 

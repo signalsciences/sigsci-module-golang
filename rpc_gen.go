@@ -13,109 +13,130 @@ func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 	var zb0001 uint32
 	zb0001, err = dc.ReadMapHeader()
 	if err != nil {
+		err = msgp.WrapError(err)
 		return
 	}
 	for zb0001 > 0 {
 		zb0001--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
+			err = msgp.WrapError(err)
 			return
 		}
 		switch msgp.UnsafeString(field) {
 		case "AccessKeyID":
 			z.AccessKeyID, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "AccessKeyID")
 				return
 			}
 		case "ModuleVersion":
 			z.ModuleVersion, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "ModuleVersion")
 				return
 			}
 		case "ServerVersion":
 			z.ServerVersion, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "ServerVersion")
 				return
 			}
 		case "ServerFlavor":
 			z.ServerFlavor, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "ServerFlavor")
 				return
 			}
 		case "ServerName":
 			z.ServerName, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "ServerName")
 				return
 			}
 		case "Timestamp":
 			z.Timestamp, err = dc.ReadInt64()
 			if err != nil {
+				err = msgp.WrapError(err, "Timestamp")
 				return
 			}
 		case "NowMillis":
 			z.NowMillis, err = dc.ReadInt64()
 			if err != nil {
+				err = msgp.WrapError(err, "NowMillis")
 				return
 			}
 		case "RemoteAddr":
 			z.RemoteAddr, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "RemoteAddr")
 				return
 			}
 		case "Method":
 			z.Method, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "Method")
 				return
 			}
 		case "Scheme":
 			z.Scheme, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "Scheme")
 				return
 			}
 		case "URI":
 			z.URI, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "URI")
 				return
 			}
 		case "Protocol":
 			z.Protocol, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "Protocol")
 				return
 			}
 		case "TLSProtocol":
 			z.TLSProtocol, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "TLSProtocol")
 				return
 			}
 		case "TLSCipher":
 			z.TLSCipher, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "TLSCipher")
 				return
 			}
 		case "WAFResponse":
 			z.WAFResponse, err = dc.ReadInt32()
 			if err != nil {
+				err = msgp.WrapError(err, "WAFResponse")
 				return
 			}
 		case "ResponseCode":
 			z.ResponseCode, err = dc.ReadInt32()
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseCode")
 				return
 			}
 		case "ResponseMillis":
 			z.ResponseMillis, err = dc.ReadInt64()
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseMillis")
 				return
 			}
 		case "ResponseSize":
 			z.ResponseSize, err = dc.ReadInt64()
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseSize")
 				return
 			}
 		case "HeadersIn":
 			var zb0002 uint32
 			zb0002, err = dc.ReadArrayHeader()
 			if err != nil {
+				err = msgp.WrapError(err, "HeadersIn")
 				return
 			}
 			if cap(z.HeadersIn) >= int(zb0002) {
@@ -127,6 +148,7 @@ func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 				var zb0003 uint32
 				zb0003, err = dc.ReadArrayHeader()
 				if err != nil {
+					err = msgp.WrapError(err, "HeadersIn", za0001)
 					return
 				}
 				if zb0003 != uint32(2) {
@@ -136,6 +158,7 @@ func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 				for za0002 := range z.HeadersIn[za0001] {
 					z.HeadersIn[za0001][za0002], err = dc.ReadString()
 					if err != nil {
+						err = msgp.WrapError(err, "HeadersIn", za0001, za0002)
 						return
 					}
 				}
@@ -144,6 +167,7 @@ func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 			var zb0004 uint32
 			zb0004, err = dc.ReadArrayHeader()
 			if err != nil {
+				err = msgp.WrapError(err, "HeadersOut")
 				return
 			}
 			if cap(z.HeadersOut) >= int(zb0004) {
@@ -155,6 +179,7 @@ func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 				var zb0005 uint32
 				zb0005, err = dc.ReadArrayHeader()
 				if err != nil {
+					err = msgp.WrapError(err, "HeadersOut", za0003)
 					return
 				}
 				if zb0005 != uint32(2) {
@@ -164,6 +189,7 @@ func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 				for za0004 := range z.HeadersOut[za0003] {
 					z.HeadersOut[za0003][za0004], err = dc.ReadString()
 					if err != nil {
+						err = msgp.WrapError(err, "HeadersOut", za0003, za0004)
 						return
 					}
 				}
@@ -171,11 +197,13 @@ func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 		case "PostBody":
 			z.PostBody, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "PostBody")
 				return
 			}
 		default:
 			err = dc.Skip()
 			if err != nil {
+				err = msgp.WrapError(err)
 				return
 			}
 		}
@@ -193,6 +221,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.AccessKeyID)
 	if err != nil {
+		err = msgp.WrapError(err, "AccessKeyID")
 		return
 	}
 	// write "ModuleVersion"
@@ -202,6 +231,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.ModuleVersion)
 	if err != nil {
+		err = msgp.WrapError(err, "ModuleVersion")
 		return
 	}
 	// write "ServerVersion"
@@ -211,6 +241,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.ServerVersion)
 	if err != nil {
+		err = msgp.WrapError(err, "ServerVersion")
 		return
 	}
 	// write "ServerFlavor"
@@ -220,6 +251,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.ServerFlavor)
 	if err != nil {
+		err = msgp.WrapError(err, "ServerFlavor")
 		return
 	}
 	// write "ServerName"
@@ -229,6 +261,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.ServerName)
 	if err != nil {
+		err = msgp.WrapError(err, "ServerName")
 		return
 	}
 	// write "Timestamp"
@@ -238,6 +271,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteInt64(z.Timestamp)
 	if err != nil {
+		err = msgp.WrapError(err, "Timestamp")
 		return
 	}
 	// write "NowMillis"
@@ -247,6 +281,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteInt64(z.NowMillis)
 	if err != nil {
+		err = msgp.WrapError(err, "NowMillis")
 		return
 	}
 	// write "RemoteAddr"
@@ -256,6 +291,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.RemoteAddr)
 	if err != nil {
+		err = msgp.WrapError(err, "RemoteAddr")
 		return
 	}
 	// write "Method"
@@ -265,6 +301,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.Method)
 	if err != nil {
+		err = msgp.WrapError(err, "Method")
 		return
 	}
 	// write "Scheme"
@@ -274,6 +311,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.Scheme)
 	if err != nil {
+		err = msgp.WrapError(err, "Scheme")
 		return
 	}
 	// write "URI"
@@ -283,6 +321,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.URI)
 	if err != nil {
+		err = msgp.WrapError(err, "URI")
 		return
 	}
 	// write "Protocol"
@@ -292,6 +331,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.Protocol)
 	if err != nil {
+		err = msgp.WrapError(err, "Protocol")
 		return
 	}
 	// write "TLSProtocol"
@@ -301,6 +341,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.TLSProtocol)
 	if err != nil {
+		err = msgp.WrapError(err, "TLSProtocol")
 		return
 	}
 	// write "TLSCipher"
@@ -310,6 +351,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.TLSCipher)
 	if err != nil {
+		err = msgp.WrapError(err, "TLSCipher")
 		return
 	}
 	// write "WAFResponse"
@@ -319,6 +361,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteInt32(z.WAFResponse)
 	if err != nil {
+		err = msgp.WrapError(err, "WAFResponse")
 		return
 	}
 	// write "ResponseCode"
@@ -328,6 +371,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteInt32(z.ResponseCode)
 	if err != nil {
+		err = msgp.WrapError(err, "ResponseCode")
 		return
 	}
 	// write "ResponseMillis"
@@ -337,6 +381,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteInt64(z.ResponseMillis)
 	if err != nil {
+		err = msgp.WrapError(err, "ResponseMillis")
 		return
 	}
 	// write "ResponseSize"
@@ -346,6 +391,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteInt64(z.ResponseSize)
 	if err != nil {
+		err = msgp.WrapError(err, "ResponseSize")
 		return
 	}
 	// write "HeadersIn"
@@ -355,16 +401,19 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteArrayHeader(uint32(len(z.HeadersIn)))
 	if err != nil {
+		err = msgp.WrapError(err, "HeadersIn")
 		return
 	}
 	for za0001 := range z.HeadersIn {
 		err = en.WriteArrayHeader(uint32(2))
 		if err != nil {
+			err = msgp.WrapError(err, "HeadersIn", za0001)
 			return
 		}
 		for za0002 := range z.HeadersIn[za0001] {
 			err = en.WriteString(z.HeadersIn[za0001][za0002])
 			if err != nil {
+				err = msgp.WrapError(err, "HeadersIn", za0001, za0002)
 				return
 			}
 		}
@@ -376,16 +425,19 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteArrayHeader(uint32(len(z.HeadersOut)))
 	if err != nil {
+		err = msgp.WrapError(err, "HeadersOut")
 		return
 	}
 	for za0003 := range z.HeadersOut {
 		err = en.WriteArrayHeader(uint32(2))
 		if err != nil {
+			err = msgp.WrapError(err, "HeadersOut", za0003)
 			return
 		}
 		for za0004 := range z.HeadersOut[za0003] {
 			err = en.WriteString(z.HeadersOut[za0003][za0004])
 			if err != nil {
+				err = msgp.WrapError(err, "HeadersOut", za0003, za0004)
 				return
 			}
 		}
@@ -397,6 +449,7 @@ func (z *RPCMsgIn) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.PostBody)
 	if err != nil {
+		err = msgp.WrapError(err, "PostBody")
 		return
 	}
 	return
@@ -491,109 +544,130 @@ func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var zb0001 uint32
 	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
+		err = msgp.WrapError(err)
 		return
 	}
 	for zb0001 > 0 {
 		zb0001--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
+			err = msgp.WrapError(err)
 			return
 		}
 		switch msgp.UnsafeString(field) {
 		case "AccessKeyID":
 			z.AccessKeyID, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "AccessKeyID")
 				return
 			}
 		case "ModuleVersion":
 			z.ModuleVersion, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "ModuleVersion")
 				return
 			}
 		case "ServerVersion":
 			z.ServerVersion, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "ServerVersion")
 				return
 			}
 		case "ServerFlavor":
 			z.ServerFlavor, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "ServerFlavor")
 				return
 			}
 		case "ServerName":
 			z.ServerName, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "ServerName")
 				return
 			}
 		case "Timestamp":
 			z.Timestamp, bts, err = msgp.ReadInt64Bytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "Timestamp")
 				return
 			}
 		case "NowMillis":
 			z.NowMillis, bts, err = msgp.ReadInt64Bytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "NowMillis")
 				return
 			}
 		case "RemoteAddr":
 			z.RemoteAddr, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "RemoteAddr")
 				return
 			}
 		case "Method":
 			z.Method, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "Method")
 				return
 			}
 		case "Scheme":
 			z.Scheme, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "Scheme")
 				return
 			}
 		case "URI":
 			z.URI, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "URI")
 				return
 			}
 		case "Protocol":
 			z.Protocol, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "Protocol")
 				return
 			}
 		case "TLSProtocol":
 			z.TLSProtocol, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "TLSProtocol")
 				return
 			}
 		case "TLSCipher":
 			z.TLSCipher, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "TLSCipher")
 				return
 			}
 		case "WAFResponse":
 			z.WAFResponse, bts, err = msgp.ReadInt32Bytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "WAFResponse")
 				return
 			}
 		case "ResponseCode":
 			z.ResponseCode, bts, err = msgp.ReadInt32Bytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseCode")
 				return
 			}
 		case "ResponseMillis":
 			z.ResponseMillis, bts, err = msgp.ReadInt64Bytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseMillis")
 				return
 			}
 		case "ResponseSize":
 			z.ResponseSize, bts, err = msgp.ReadInt64Bytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseSize")
 				return
 			}
 		case "HeadersIn":
 			var zb0002 uint32
 			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "HeadersIn")
 				return
 			}
 			if cap(z.HeadersIn) >= int(zb0002) {
@@ -605,6 +679,7 @@ func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				var zb0003 uint32
 				zb0003, bts, err = msgp.ReadArrayHeaderBytes(bts)
 				if err != nil {
+					err = msgp.WrapError(err, "HeadersIn", za0001)
 					return
 				}
 				if zb0003 != uint32(2) {
@@ -614,6 +689,7 @@ func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				for za0002 := range z.HeadersIn[za0001] {
 					z.HeadersIn[za0001][za0002], bts, err = msgp.ReadStringBytes(bts)
 					if err != nil {
+						err = msgp.WrapError(err, "HeadersIn", za0001, za0002)
 						return
 					}
 				}
@@ -622,6 +698,7 @@ func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			var zb0004 uint32
 			zb0004, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "HeadersOut")
 				return
 			}
 			if cap(z.HeadersOut) >= int(zb0004) {
@@ -633,6 +710,7 @@ func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				var zb0005 uint32
 				zb0005, bts, err = msgp.ReadArrayHeaderBytes(bts)
 				if err != nil {
+					err = msgp.WrapError(err, "HeadersOut", za0003)
 					return
 				}
 				if zb0005 != uint32(2) {
@@ -642,6 +720,7 @@ func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				for za0004 := range z.HeadersOut[za0003] {
 					z.HeadersOut[za0003][za0004], bts, err = msgp.ReadStringBytes(bts)
 					if err != nil {
+						err = msgp.WrapError(err, "HeadersOut", za0003, za0004)
 						return
 					}
 				}
@@ -649,11 +728,13 @@ func (z *RPCMsgIn) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		case "PostBody":
 			z.PostBody, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "PostBody")
 				return
 			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
+				err = msgp.WrapError(err)
 				return
 			}
 		}
@@ -689,39 +770,46 @@ func (z *RPCMsgIn2) DecodeMsg(dc *msgp.Reader) (err error) {
 	var zb0001 uint32
 	zb0001, err = dc.ReadMapHeader()
 	if err != nil {
+		err = msgp.WrapError(err)
 		return
 	}
 	for zb0001 > 0 {
 		zb0001--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
+			err = msgp.WrapError(err)
 			return
 		}
 		switch msgp.UnsafeString(field) {
 		case "RequestID":
 			z.RequestID, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "RequestID")
 				return
 			}
 		case "ResponseCode":
 			z.ResponseCode, err = dc.ReadInt32()
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseCode")
 				return
 			}
 		case "ResponseMillis":
 			z.ResponseMillis, err = dc.ReadInt64()
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseMillis")
 				return
 			}
 		case "ResponseSize":
 			z.ResponseSize, err = dc.ReadInt64()
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseSize")
 				return
 			}
 		case "HeadersOut":
 			var zb0002 uint32
 			zb0002, err = dc.ReadArrayHeader()
 			if err != nil {
+				err = msgp.WrapError(err, "HeadersOut")
 				return
 			}
 			if cap(z.HeadersOut) >= int(zb0002) {
@@ -733,6 +821,7 @@ func (z *RPCMsgIn2) DecodeMsg(dc *msgp.Reader) (err error) {
 				var zb0003 uint32
 				zb0003, err = dc.ReadArrayHeader()
 				if err != nil {
+					err = msgp.WrapError(err, "HeadersOut", za0001)
 					return
 				}
 				if zb0003 != uint32(2) {
@@ -742,6 +831,7 @@ func (z *RPCMsgIn2) DecodeMsg(dc *msgp.Reader) (err error) {
 				for za0002 := range z.HeadersOut[za0001] {
 					z.HeadersOut[za0001][za0002], err = dc.ReadString()
 					if err != nil {
+						err = msgp.WrapError(err, "HeadersOut", za0001, za0002)
 						return
 					}
 				}
@@ -749,6 +839,7 @@ func (z *RPCMsgIn2) DecodeMsg(dc *msgp.Reader) (err error) {
 		default:
 			err = dc.Skip()
 			if err != nil {
+				err = msgp.WrapError(err)
 				return
 			}
 		}
@@ -766,6 +857,7 @@ func (z *RPCMsgIn2) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.RequestID)
 	if err != nil {
+		err = msgp.WrapError(err, "RequestID")
 		return
 	}
 	// write "ResponseCode"
@@ -775,6 +867,7 @@ func (z *RPCMsgIn2) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteInt32(z.ResponseCode)
 	if err != nil {
+		err = msgp.WrapError(err, "ResponseCode")
 		return
 	}
 	// write "ResponseMillis"
@@ -784,6 +877,7 @@ func (z *RPCMsgIn2) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteInt64(z.ResponseMillis)
 	if err != nil {
+		err = msgp.WrapError(err, "ResponseMillis")
 		return
 	}
 	// write "ResponseSize"
@@ -793,6 +887,7 @@ func (z *RPCMsgIn2) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteInt64(z.ResponseSize)
 	if err != nil {
+		err = msgp.WrapError(err, "ResponseSize")
 		return
 	}
 	// write "HeadersOut"
@@ -802,16 +897,19 @@ func (z *RPCMsgIn2) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteArrayHeader(uint32(len(z.HeadersOut)))
 	if err != nil {
+		err = msgp.WrapError(err, "HeadersOut")
 		return
 	}
 	for za0001 := range z.HeadersOut {
 		err = en.WriteArrayHeader(uint32(2))
 		if err != nil {
+			err = msgp.WrapError(err, "HeadersOut", za0001)
 			return
 		}
 		for za0002 := range z.HeadersOut[za0001] {
 			err = en.WriteString(z.HeadersOut[za0001][za0002])
 			if err != nil {
+				err = msgp.WrapError(err, "HeadersOut", za0001, za0002)
 				return
 			}
 		}
@@ -854,39 +952,46 @@ func (z *RPCMsgIn2) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var zb0001 uint32
 	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
+		err = msgp.WrapError(err)
 		return
 	}
 	for zb0001 > 0 {
 		zb0001--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
+			err = msgp.WrapError(err)
 			return
 		}
 		switch msgp.UnsafeString(field) {
 		case "RequestID":
 			z.RequestID, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "RequestID")
 				return
 			}
 		case "ResponseCode":
 			z.ResponseCode, bts, err = msgp.ReadInt32Bytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseCode")
 				return
 			}
 		case "ResponseMillis":
 			z.ResponseMillis, bts, err = msgp.ReadInt64Bytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseMillis")
 				return
 			}
 		case "ResponseSize":
 			z.ResponseSize, bts, err = msgp.ReadInt64Bytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "ResponseSize")
 				return
 			}
 		case "HeadersOut":
 			var zb0002 uint32
 			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "HeadersOut")
 				return
 			}
 			if cap(z.HeadersOut) >= int(zb0002) {
@@ -898,6 +1003,7 @@ func (z *RPCMsgIn2) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				var zb0003 uint32
 				zb0003, bts, err = msgp.ReadArrayHeaderBytes(bts)
 				if err != nil {
+					err = msgp.WrapError(err, "HeadersOut", za0001)
 					return
 				}
 				if zb0003 != uint32(2) {
@@ -907,6 +1013,7 @@ func (z *RPCMsgIn2) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				for za0002 := range z.HeadersOut[za0001] {
 					z.HeadersOut[za0001][za0002], bts, err = msgp.ReadStringBytes(bts)
 					if err != nil {
+						err = msgp.WrapError(err, "HeadersOut", za0001, za0002)
 						return
 					}
 				}
@@ -914,6 +1021,7 @@ func (z *RPCMsgIn2) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
+				err = msgp.WrapError(err)
 				return
 			}
 		}
@@ -941,29 +1049,34 @@ func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 	var zb0001 uint32
 	zb0001, err = dc.ReadMapHeader()
 	if err != nil {
+		err = msgp.WrapError(err)
 		return
 	}
 	for zb0001 > 0 {
 		zb0001--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
+			err = msgp.WrapError(err)
 			return
 		}
 		switch msgp.UnsafeString(field) {
 		case "WAFResponse":
 			z.WAFResponse, err = dc.ReadInt32()
 			if err != nil {
+				err = msgp.WrapError(err, "WAFResponse")
 				return
 			}
 		case "RequestID":
 			z.RequestID, err = dc.ReadString()
 			if err != nil {
+				err = msgp.WrapError(err, "RequestID")
 				return
 			}
 		case "RequestHeaders":
 			var zb0002 uint32
 			zb0002, err = dc.ReadArrayHeader()
 			if err != nil {
+				err = msgp.WrapError(err, "RequestHeaders")
 				return
 			}
 			if cap(z.RequestHeaders) >= int(zb0002) {
@@ -975,6 +1088,7 @@ func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 				var zb0003 uint32
 				zb0003, err = dc.ReadArrayHeader()
 				if err != nil {
+					err = msgp.WrapError(err, "RequestHeaders", za0001)
 					return
 				}
 				if zb0003 != uint32(2) {
@@ -984,6 +1098,7 @@ func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 				for za0002 := range z.RequestHeaders[za0001] {
 					z.RequestHeaders[za0001][za0002], err = dc.ReadString()
 					if err != nil {
+						err = msgp.WrapError(err, "RequestHeaders", za0001, za0002)
 						return
 					}
 				}
@@ -991,6 +1106,7 @@ func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 		default:
 			err = dc.Skip()
 			if err != nil {
+				err = msgp.WrapError(err)
 				return
 			}
 		}
@@ -1008,6 +1124,7 @@ func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteInt32(z.WAFResponse)
 	if err != nil {
+		err = msgp.WrapError(err, "WAFResponse")
 		return
 	}
 	// write "RequestID"
@@ -1017,6 +1134,7 @@ func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteString(z.RequestID)
 	if err != nil {
+		err = msgp.WrapError(err, "RequestID")
 		return
 	}
 	// write "RequestHeaders"
@@ -1026,16 +1144,19 @@ func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
 	}
 	err = en.WriteArrayHeader(uint32(len(z.RequestHeaders)))
 	if err != nil {
+		err = msgp.WrapError(err, "RequestHeaders")
 		return
 	}
 	for za0001 := range z.RequestHeaders {
 		err = en.WriteArrayHeader(uint32(2))
 		if err != nil {
+			err = msgp.WrapError(err, "RequestHeaders", za0001)
 			return
 		}
 		for za0002 := range z.RequestHeaders[za0001] {
 			err = en.WriteString(z.RequestHeaders[za0001][za0002])
 			if err != nil {
+				err = msgp.WrapError(err, "RequestHeaders", za0001, za0002)
 				return
 			}
 		}
@@ -1072,29 +1193,34 @@ func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var zb0001 uint32
 	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
+		err = msgp.WrapError(err)
 		return
 	}
 	for zb0001 > 0 {
 		zb0001--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
+			err = msgp.WrapError(err)
 			return
 		}
 		switch msgp.UnsafeString(field) {
 		case "WAFResponse":
 			z.WAFResponse, bts, err = msgp.ReadInt32Bytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "WAFResponse")
 				return
 			}
 		case "RequestID":
 			z.RequestID, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "RequestID")
 				return
 			}
 		case "RequestHeaders":
 			var zb0002 uint32
 			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
+				err = msgp.WrapError(err, "RequestHeaders")
 				return
 			}
 			if cap(z.RequestHeaders) >= int(zb0002) {
@@ -1106,6 +1232,7 @@ func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				var zb0003 uint32
 				zb0003, bts, err = msgp.ReadArrayHeaderBytes(bts)
 				if err != nil {
+					err = msgp.WrapError(err, "RequestHeaders", za0001)
 					return
 				}
 				if zb0003 != uint32(2) {
@@ -1115,6 +1242,7 @@ func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				for za0002 := range z.RequestHeaders[za0001] {
 					z.RequestHeaders[za0001][za0002], bts, err = msgp.ReadStringBytes(bts)
 					if err != nil {
+						err = msgp.WrapError(err, "RequestHeaders", za0001, za0002)
 						return
 					}
 				}
@@ -1122,6 +1250,7 @@ func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
+				err = msgp.WrapError(err)
 				return
 			}
 		}
