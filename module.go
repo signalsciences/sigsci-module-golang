@@ -3,7 +3,6 @@ package sigsci
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -189,9 +188,6 @@ func CustomInspector(insp Inspector, init InspectorInitFunc, fini InspectorFiniF
 	}
 }
 
-// TODO: What error should we return for failed open on timeout, or should we just cut over and no error?
-var errTimeout = errors.New("timed out")
-
 // ServeHTTP satisfies the http.Handler interface
 func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	start := time.Now().UTC()
@@ -206,34 +202,10 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		defer m.inspFini(req)
 	}
 
-	// timeoutTimer will fire after we've hit our service-guarantee time limit.
-	timeoutTimer := time.NewTimer(m.timeout)
-
-	// Make the call to inspectorPreRequest in the background, guarded by the timeout timer.
 	if m.debug {
 		log.Printf("DEBUG: calling 'RPC.PreRequest' for inspection: method=%s host=%s url=%s", req.Method, req.Host, req.URL)
 	}
-
-	var inspin2 RPCMsgIn2
-	var out RPCMsgOut
-	var err error
-
-	c1 := make(chan struct{}, 1)
-
-	go func() {
-		inspin2, out, err = m.inspectorPreRequest(req)
-		c1 <- struct{}{}
-		timeoutTimer.Stop()
-	}()
-
-	// Wait until either the PreRequest inspection completes, or the timeoutTimer fires.
-	select {
-	case <-c1:
-
-	case <-timeoutTimer.C:
-		err = errTimeout
-	}
-
+	inspin2, out, err := m.inspectorPreRequest(req)
 	if err != nil {
 		// Fail open
 		if m.debug {
