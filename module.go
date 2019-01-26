@@ -196,9 +196,6 @@ var errTimeout = errors.New("timed out")
 func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	start := time.Now().UTC()
 
-	// timeoutTimer will go off after we've hit our service-guarantee limit.
-	timeoutTimer := time.After(m.timeout)
-
 	// Use the inspector init/fini functions if available
 	if m.inspInit != nil && !m.inspInit(req) {
 		// Fail open
@@ -209,33 +206,31 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		defer m.inspFini(req)
 	}
 
-	// Make the call to inspectorPreRequest, guarded by the timeout timer.
+	// timeoutTimer will fire after we've hit our service-guarantee time limit.
+	timeoutTimer := time.NewTimer(m.timeout)
+
+	// Make the call to inspectorPreRequest in the background, guarded by the timeout timer.
 	if m.debug {
 		log.Printf("DEBUG: calling 'RPC.PreRequest' for inspection: method=%s host=%s url=%s", req.Method, req.Host, req.URL)
 	}
-
-	type inspectorPreRequestResult struct {
-		inspin2 RPCMsgIn2
-		out     RPCMsgOut
-		err     error
-	}
-
-	c1 := make(chan inspectorPreRequestResult, 1)
-
-	go func() {
-		inspin2, out, err := m.inspectorPreRequest(req)
-		c1 <- inspectorPreRequestResult{inspin2, out, err}
-	}()
 
 	var inspin2 RPCMsgIn2
 	var out RPCMsgOut
 	var err error
 
-	select {
-	case res := <-c1:
-		inspin2, out, err = res.inspin2, res.out, res.err
+	c1 := make(chan struct{}, 1)
 
-	case <-timeoutTimer:
+	go func() {
+		inspin2, out, err = m.inspectorPreRequest(req)
+		c1 <- struct{}{}
+		timeoutTimer.Stop()
+	}()
+
+	// Wait until either the PreRequest inspection completes, or the timeoutTimer fires.
+	select {
+	case <-c1:
+
+	case <-timeoutTimer.C:
 		err = errTimeout
 	}
 
@@ -272,55 +267,34 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	size := rr.size
 	duration := end.Sub(start)
 
-	c2 := make(chan error, 1)
-
 	if inspin2.RequestID != "" {
-		inspin2.ResponseCode = int32(code)
-		inspin2.ResponseSize = int64(size)
-		inspin2.ResponseMillis = int64(duration / time.Millisecond)
-		inspin2.HeadersOut = convertHeaders(rr.Header())
-		if m.debug {
-			log.Printf("DEBUG: calling 'RPC.UpdateRequest' due to returned requestid=%s: method=%s host=%s url=%s code=%d size=%d duration=%s", inspin2.RequestID, req.Method, req.Host, req.URL, code, size, duration)
-		}
-
-		// Make the call to inspectorUpdateRequest, guarded by the timeout timer.
+		// Do the UpdateRequest inspection in the background while the foreground hurries the response back to the end-user.
 		go func() {
-			c2 <- m.inspectorUpdateRequest(inspin2)
+			inspin2.ResponseCode = int32(code)
+			inspin2.ResponseSize = int64(size)
+			inspin2.ResponseMillis = int64(duration / time.Millisecond)
+			inspin2.HeadersOut = convertHeaders(rr.Header())
+			if m.debug {
+				log.Printf("DEBUG: calling 'RPC.UpdateRequest' due to returned requestid=%s: method=%s host=%s url=%s code=%d size=%d duration=%s", inspin2.RequestID, req.Method, req.Host, req.URL, code, size, duration)
+			}
+			if err := m.inspectorUpdateRequest(inspin2); err != nil && m.debug {
+				log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
+			}
 		}()
 
-		select {
-		case err = <-c2:
-
-		case <-timeoutTimer:
-			err = errTimeout
-		}
-
-		if err != nil && m.debug {
-			log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
-		}
 		return
 	}
 
 	if code >= 300 || size >= m.anomalySize || duration >= m.anomalyDuration {
-		if m.debug {
-			log.Printf("DEBUG: calling 'RPC.PostRequest' due to anomaly: method=%s host=%s url=%s code=%d size=%d duration=%s", req.Method, req.Host, req.URL, code, size, duration)
-		}
-
-		// Make the call to inspectorPostRequest, guarded by the timeout timer.
+		// Do the PostRequest inspection in the background while the foreground hurries the response back to the end-user.
 		go func() {
-			c2 <- m.inspectorPostRequest(req, wafresponse, code, size, duration, rr.Header())
+			if m.debug {
+				log.Printf("DEBUG: calling 'RPC.PostRequest' due to anomaly: method=%s host=%s url=%s code=%d size=%d duration=%s", req.Method, req.Host, req.URL, code, size, duration)
+			}
+			if err := m.inspectorPostRequest(req, wafresponse, code, size, duration, rr.Header()); err != nil && m.debug {
+				log.Printf("ERROR: 'RPC.PostRequest' call failed: %s", err.Error())
+			}
 		}()
-
-		select {
-		case err = <-c2:
-
-		case <-timeoutTimer:
-			err = errTimeout
-		}
-
-		if err != nil && m.debug {
-			log.Printf("ERROR: 'RPC.PostRequest' call failed: %s", err.Error())
-		}
 	}
 }
 
@@ -460,7 +434,7 @@ func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur tim
 
 	// golang removes Host header from req.Header map and
 	// promotes it to r.Host field. Add it back as the first header.
-	// See: https://github.sigsci.in/engineering/sigsci/issues/8336
+	// See: https://github.com/signalsciences/sigsci/issues/8336
 	hin := convertHeaders(r.Header)
 	if len(r.Host) > 0 {
 		hin = append([][2]string{{"Host", r.Host}}, hin...)
