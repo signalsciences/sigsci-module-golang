@@ -240,6 +240,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	duration := end.Sub(start)
 
 	if inspin2.RequestID != "" {
+		// Do the UpdateRequest inspection in the background while the foreground hurries the response back to the end-user.
 		inspin2.ResponseCode = int32(code)
 		inspin2.ResponseSize = int64(size)
 		inspin2.ResponseMillis = int64(duration / time.Millisecond)
@@ -247,19 +248,29 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if m.debug {
 			log.Printf("DEBUG: calling 'RPC.UpdateRequest' due to returned requestid=%s: method=%s host=%s url=%s code=%d size=%d duration=%s", inspin2.RequestID, req.Method, req.Host, req.URL, code, size, duration)
 		}
-		if err := m.inspectorUpdateRequest(inspin2); err != nil && m.debug {
-			log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
-		}
+		go func() {
+			if err := m.inspectorUpdateRequest(inspin2); err != nil && m.debug {
+				log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
+			}
+		}()
+
 		return
 	}
 
 	if code >= 300 || size >= m.anomalySize || duration >= m.anomalyDuration {
+		// Do the PostRequest inspection in the background while the foreground hurries the response back to the end-user.
 		if m.debug {
 			log.Printf("DEBUG: calling 'RPC.PostRequest' due to anomaly: method=%s host=%s url=%s code=%d size=%d duration=%s", req.Method, req.Host, req.URL, code, size, duration)
 		}
-		if err := m.inspectorPostRequest(req, wafresponse, code, size, duration, rr.Header()); err != nil && m.debug {
-			log.Printf("ERROR: 'RPC.PostRequest' call failed: %s", err.Error())
-		}
+		inspin := NewRPCMsgIn(req, nil, code, size, duration, m.moduleVersion, m.serverVersion)
+		inspin.WAFResponse = wafresponse
+		inspin.HeadersOut = convertHeaders(rr.Header())
+
+		go func() {
+			if err := m.inspectorPostRequest(inspin); err != nil && m.debug {
+				log.Printf("ERROR: 'RPC.PostRequest' call failed: %s", err.Error())
+			}
+		}()
 	}
 }
 
@@ -340,12 +351,8 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 }
 
 // inspectorPostRequest makes a postrequest call to the inspector
-func (m *Module) inspectorPostRequest(req *http.Request, wafResponse int32,
-	code int, size int64, millis time.Duration, hout http.Header) error {
+func (m *Module) inspectorPostRequest(inspin *RPCMsgIn) error {
 	// Create message to agent from the input request
-	inspin := NewRPCMsgIn(req, nil, code, size, millis, m.moduleVersion, m.serverVersion)
-	inspin.WAFResponse = wafResponse
-	inspin.HeadersOut = convertHeaders(hout)
 
 	if m.debug {
 		log.Printf("DEBUG: Making PostRequest call to inspector: %s %s", inspin.Method, inspin.URI)
