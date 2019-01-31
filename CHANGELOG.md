@@ -1,5 +1,8 @@
 # GoLang Module Release Notes
 
+## 1.5.0 2019-01-31
+* Switched Update / Post RPC call to async
+
 ## 1.4.3 2018-08-07
 * Improved error and debug messages
 * Exposed more functionality to allow easier extending
