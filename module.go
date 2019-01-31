@@ -267,7 +267,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		inspin.HeadersOut = convertHeaders(rr.Header())
 
 		go func() {
-			if err := m.inspectorPostRequest(inspin, wafresponse, code, size, duration); err != nil && m.debug {
+			if err := m.inspectorPostRequest(inspin); err != nil && m.debug {
 				log.Printf("ERROR: 'RPC.PostRequest' call failed: %s", err.Error())
 			}
 		}()
@@ -351,7 +351,7 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 }
 
 // inspectorPostRequest makes a postrequest call to the inspector
-func (m *Module) inspectorPostRequest(inspin *RPCMsgIn, wafResponse int32, code int, size int64, millis time.Duration) error {
+func (m *Module) inspectorPostRequest(inspin *RPCMsgIn) error {
 	// Create message to agent from the input request
 
 	if m.debug {
