@@ -12,6 +12,9 @@ chmod a+r *.go
 go build .
 go test .
 
+#        --enable=gosimple \
+#        --enable=unused \
+
 gometalinter \
         --vendor \
         --deadline=60s \
@@ -21,11 +24,9 @@ gometalinter \
         --enable=deadcode \
         --enable=golint \
         --enable=gofmt \
-#        --enable=gosimple \
-#           --enable=unused \
-#        --enable=vet \
+        --enable=vet \
         --exclude=_gen.go \
-	--exclude=/usr/local/go/src/net/lookup_unix.go \
+        --exclude=/usr/local/go/src/net/lookup_unix.go \
         .
 
 rm -rf artifacts/
