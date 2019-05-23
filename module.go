@@ -493,27 +493,23 @@ func readPost(req *http.Request, m *Module) bool {
 
 func checkContentType(s string) bool {
 	s = strings.ToLower(s)
-	if strings.HasPrefix(s, "application/x-www-form-urlencoded") {
-		return true
-	}
+	switch {
 
-	if strings.HasPrefix(s, "multipart/form-data") {
+	// Form
+	case strings.HasPrefix(s, "application/x-www-form-urlencoded"):
 		return true
-	}
-
-	if strings.Contains(s, "json") {
+	case strings.HasPrefix(s, "multipart/form-data"):
 		return true
-	}
 
-	if strings.Contains(s, "javascript") {
+	// JSON
+	case strings.Contains(s, "json") ||
+		strings.Contains(s, "javascript"):
 		return true
-	}
 
-	if strings.HasSuffix(s, "/xml") {
-		return true
-	}
-
-	if strings.HasSuffix(s, "+xml") {
+	// XML
+	case strings.HasPrefix(s, "text/xml") ||
+		strings.HasPrefix(s, "application/xml") ||
+		strings.Contains(content, "+xml"):
 		return true
 	}
 
