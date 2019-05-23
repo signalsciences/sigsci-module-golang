@@ -50,6 +50,16 @@ func helloworld(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/plain")
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+
+	// Populate varX response headers from form values for mtest form processing
+	r.ParseForm()
+	if varq := r.FormValue("varq"); len(varq) > 0 {
+		w.Header().Add("varq", varq)
+	}
+	if varb := r.PostFormValue("varb"); len(varb) > 0 {
+		w.Header().Add("varb", varb)
+	}
+
 	w.WriteHeader(code)
 	w.Write(body)
 }
