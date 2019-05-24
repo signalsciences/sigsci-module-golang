@@ -18,7 +18,7 @@ type ResponseWriter interface {
 // ResponseWriterFlusher is a ResponseWriter with a http.Flusher interface
 type ResponseWriterFlusher interface {
 	ResponseWriter
-	Flush()
+	http.Flusher
 }
 
 // NewResponseWriter returns a ResponseWriter or ResponseWriterFlusher depending on the base http.ResponseWriter.
