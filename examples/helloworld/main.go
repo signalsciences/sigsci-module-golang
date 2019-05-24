@@ -10,8 +10,6 @@ import (
 	sigsci "github.com/signalsciences/sigsci-module-golang"
 )
 
-var ()
-
 func main() {
 	// Process sigsci-agent rpc-address if passed
 	sigsciAgentNetwork := "unix"
