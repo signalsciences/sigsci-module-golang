@@ -24,7 +24,8 @@ func main() {
 	}
 	log.Printf("Using sigsci-agent address (pass address as program argument to change): %s:%s", sigsciAgentNetwork, sigsciAgentAddress)
 
-	// Existing http.Handler
+	// Existing handler, in this case a simple http.ServeMux,
+	// but could be any http.Handler in the application
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", helloworld)
 
