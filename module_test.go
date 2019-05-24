@@ -120,6 +120,15 @@ func TestModule(t *testing.T) {
 		{genTestRequest("PUT", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 200, ""},
 		{genTestRequest("PUT", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 406, "XSS"},
 		{genTestRequest("PUT", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 200, ""},
+		{genTestRequest("POST", "http://example.com/", "text/xml;charset=UTF-8", `<a>1</a>`), 200, ""},
+		{genTestRequest("POST", "http://example.com/", "text/xml;charset=UTF-8", `<a>1</a>`), 406, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "text/xml;charset=UTF-8", `<a>1</a>`), 200, ""},
+		{genTestRequest("POST", "http://example.com/", "application/xml; charset=iso-2022-kr", `<a>1</a>`), 200, ""},
+		{genTestRequest("POST", "http://example.com/", "application/xml; charset=iso-2022-kr", `<a>1</a>`), 406, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "application/xml; charset=iso-2022-kr", `<a>1</a>`), 200, ""},
+		{genTestRequest("POST", "http://example.com/", "application/rss+xml", `<a>1</a>`), 200, ""},
+		{genTestRequest("POST", "http://example.com/", "application/rss+xml", `<a>1</a>`), 406, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "application/rss+xml", `<a>1</a>`), 200, ""},
 	}
 
 	for pos, tt := range cases {

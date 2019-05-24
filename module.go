@@ -509,7 +509,7 @@ func checkContentType(s string) bool {
 	// XML
 	case strings.HasPrefix(s, "text/xml") ||
 		strings.HasPrefix(s, "application/xml") ||
-		strings.Contains(content, "+xml"):
+		strings.Contains(s, "+xml"):
 		return true
 	}
 
