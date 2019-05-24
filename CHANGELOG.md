@@ -1,5 +1,9 @@
 # GoLang Module Release Notes
 
+## Unreleased
+
+* Updated list of valid XML content types
+
 ## 1.5.0 2019-01-31
 * Switched Update / Post RPC call to async
 
