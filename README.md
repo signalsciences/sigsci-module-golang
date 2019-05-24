@@ -1,24 +1,12 @@
 # sigsci-module-golang
 
-Signal Sciences module in golang
+The Signal Sciences module in golang allows for integrating your golang
+application directly with the Signal Sciences agent at the source code
+level. This golang module is written as a `http.Handler`` wrapper. To
+integrate your application with the module, you will need to wrap your
+existing handler with the module handler.
 
-## Dependencies
-
-The Golang module requires two prerequisite packages to be installed: [MessagePack Code Generator](https://github.com/tinylib/msgp/) and the Signal Sciences custom [tlstext](https://github.com/signalsciences/tlstext) package.
-
-The easiest way to install these packages is by using the go get command to download and install these packages directly from their GitHub repositories:
-
-```bash
-go get -u -t github.com/tinylib/msgp/msgp
-go get -u -t github.com/signalsciences/tlstext
-```
-
-## Usage
-
-The golang module is written as a http.Handler wrapper. To use the module, you
-will need to wrap your existing handler with the module handler.
-
-Example:
+Example Code Snippet:
 ```go
 // Existing http.Handler
 mux := http.NewServeMux()
@@ -48,6 +36,22 @@ s := &http.Server{
 log.Fatal(s.ListenAndServe())
 ```
 
+## Dependencies
+
+The golang module requires two prerequisite packages to be installed:
+[MessagePack Code Generator](https://github.com/tinylib/msgp/) and the
+Signal Sciences custom [tlstext](https://github.com/signalsciences/tlstext)
+package.
+
+The easiest way to install these packages is by using the `go get`
+command to download and install these packages directly from their
+public GitHub repositories:
+
+```bash
+go get -u -t github.com/tinylib/msgp/msgp
+go get -u -t github.com/signalsciences/tlstext
+```
+
 ## Examples
 
 The [examples](examples/) directory contains complete example code.
@@ -67,3 +71,6 @@ go run examples/helloworld/main.go /tmp/sigsci.sock
 # A TCP address:port
 go run examples/helloworld/main.go localhost:9999
 ```
+
+This will run an HTTP listener on `localhost:8000`, which will send any
+traffic to this listener to a running sigsci-agent for inspection.
