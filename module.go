@@ -1,7 +1,6 @@
 package sigsci
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -215,36 +214,33 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// NOTE: according to net/http docs, if WriteHeader is not called explicitly,
-	// the first call to Write will trigger an implicit WriteHeader(http.StatusOK).
-	// this is why the default code is 200 and it only changes if WriteHeader is called.
-	rr := &responseRecorder{w, 200, 0}
+	rw := NewResponseWriter(w)
 
 	wafresponse := out.WAFResponse
 	switch wafresponse {
 	case 406:
 		status := int(wafresponse)
-		http.Error(rr, fmt.Sprintf("%d %s\n", status, http.StatusText(status)), status)
+		http.Error(rw, fmt.Sprintf("%d %s\n", status, http.StatusText(status)), status)
 	case 200:
 		// continue with normal request
-		m.handler.ServeHTTP(rr, req)
+		m.handler.ServeHTTP(rw, req)
 	default:
 		log.Printf("ERROR: Received invalid response code from inspector (failing open): %d", wafresponse)
 		// continue with normal request
-		m.handler.ServeHTTP(rr, req)
+		m.handler.ServeHTTP(rw, req)
 	}
 
 	end := time.Now().UTC()
-	code := rr.code
-	size := rr.size
+	code := rw.StatusCode()
+	size := rw.BytesWritten()
 	duration := end.Sub(start)
 
 	if inspin2.RequestID != "" {
 		// Do the UpdateRequest inspection in the background while the foreground hurries the response back to the end-user.
 		inspin2.ResponseCode = int32(code)
-		inspin2.ResponseSize = int64(size)
+		inspin2.ResponseSize = size
 		inspin2.ResponseMillis = int64(duration / time.Millisecond)
-		inspin2.HeadersOut = convertHeaders(rr.Header())
+		inspin2.HeadersOut = convertHeaders(rw.Header())
 		if m.debug {
 			log.Printf("DEBUG: calling 'RPC.UpdateRequest' due to returned requestid=%s: method=%s host=%s url=%s code=%d size=%d duration=%s", inspin2.RequestID, req.Method, req.Host, req.URL, code, size, duration)
 		}
@@ -264,7 +260,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 		inspin := NewRPCMsgIn(req, nil, code, size, duration, m.moduleVersion, m.serverVersion)
 		inspin.WAFResponse = wafresponse
-		inspin.HeadersOut = convertHeaders(rr.Header())
+		inspin.HeadersOut = convertHeaders(rw.Header())
 
 		go func() {
 			if err := m.inspectorPostRequest(inspin); err != nil && m.debug {
@@ -442,34 +438,6 @@ func stripPort(ipdots string) string {
 		return ipdots
 	}
 	return host
-}
-
-type responseRecorder struct {
-	w    http.ResponseWriter
-	code int
-	size int64
-}
-
-func (l *responseRecorder) Header() http.Header {
-	return l.w.Header()
-}
-
-func (l *responseRecorder) WriteHeader(status int) {
-	l.code = status
-	l.w.WriteHeader(status)
-}
-
-func (l *responseRecorder) Write(b []byte) (int, error) {
-	l.size += int64(len(b))
-	return l.w.Write(b)
-}
-
-func (l *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	if h, ok := l.w.(http.Hijacker); ok {
-		return h.Hijack()
-	}
-	// Required for WebSockets to work
-	return nil, nil, fmt.Errorf("response writer (%T) does not implement http.Hijacker", l.w)
 }
 
 // readPost returns True if we should read a postbody
