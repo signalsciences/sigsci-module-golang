@@ -25,7 +25,6 @@ func (ri *RPCInspector) ModuleInit(in *RPCMsgIn, out *RPCMsgOut) error {
 		ri.CloseRPCClient(client, err)
 	}
 
-	// TBD: wrap error instead of prefixing
 	if err != nil {
 		return fmt.Errorf("RPC.ModuleInit call failed: %s", err)
 	}
@@ -41,7 +40,6 @@ func (ri *RPCInspector) PreRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 		ri.CloseRPCClient(client, err)
 	}
 
-	// TBD: wrap error instead of prefixing
 	if err != nil {
 		return fmt.Errorf("RPC.PreRequest call failed: %s", err)
 	}
@@ -63,7 +61,6 @@ func (ri *RPCInspector) PostRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 		out.RequestHeaders = nil
 	}
 
-	// TBD: wrap error instead of prefixing
 	if err != nil {
 		return fmt.Errorf("RPC.PostRequest call failed: %s", err)
 	}

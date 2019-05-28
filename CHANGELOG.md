@@ -2,14 +2,17 @@
 
 ## Unreleased
 
-* Updated list of valid XML content types
+* Updated list of inspectable XML content types
 
 ## 1.5.0 2019-01-31
+
 * Switched Update / Post RPC call to async
 
 ## 1.4.3 2018-08-07
+
 * Improved error and debug messages
 * Exposed more functionality to allow easier extending
+
 
 ## 1.4.2 2018-06-15
 * Improved handling of the `Host` request header

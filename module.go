@@ -2,11 +2,13 @@ package sigsci
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -106,15 +108,21 @@ func Debug(enable bool) func(*Module) error {
 // Signal Sciences Agent
 func Socket(network, address string) func(*Module) error {
 	return func(m *Module) error {
-		m.rpcNetwork = network
-		m.rpcAddress = address
-
-		if network != "tcp" && network != "unix" {
-			return fmt.Errorf("Network must be 'tcp' or 'unix', got %q", network)
+		switch network {
+		case "unix":
+			if !filepath.IsAbs(address) {
+				return errors.New(`address must be an absolute path for network="unix"`)
+			}
+		case "tcp":
+			if _, _, err := net.SplitHostPort(address); err != nil {
+				return fmt.Errorf(`address must be in "address:port" form for network="tcp": %s`, err)
+			}
+		default:
+			return errors.New(`network must be "tcp" or "unix"`)
 		}
 
-		// TODO: check that if TCP, address is an ip/port
-		// TODO: check if UNIX (Domain Socket), then address is a path
+		m.rpcNetwork = network
+		m.rpcAddress = address
 
 		return nil
 	}
@@ -354,7 +362,7 @@ func (m *Module) inspectorPostRequest(inspin *RPCMsgIn) error {
 		log.Printf("DEBUG: Making PostRequest call to inspector: %s %s", inspin.Method, inspin.URI)
 	}
 
-	// TBD: Actually use the output
+	// NOTE: Currently the output argument is not used
 	err := m.inspector.PostRequest(inspin, &RPCMsgOut{})
 	if err != nil {
 		if m.debug {
@@ -371,7 +379,7 @@ func (m *Module) inspectorUpdateRequest(inspin RPCMsgIn2) error {
 		log.Printf("DEBUG: Making UpdateRequest call to inspector: RequestID=%s", inspin.RequestID)
 	}
 
-	// TBD: Actually use the output
+	// NOTE: Currently the output argument is not used
 	err := m.inspector.UpdateRequest(&inspin, &RPCMsgOut{})
 	if err != nil {
 		if m.debug {
