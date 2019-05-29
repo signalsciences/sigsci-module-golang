@@ -38,10 +38,14 @@ type Module struct {
 	inspFini         InspectorFiniFunc
 }
 
-// NewModule wraps an existing http.Handler that uses the Signal Sciences Agent.
-// Configuration is based on 'functional options' as mentioned in:
-// https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
-func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) {
+// ModuleConfigOption is a functional config option for configuring the module
+// See: https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
+type ModuleConfigOption func(*Module) error
+
+// NewModule wraps an existing http.Handler with one that extracts data and
+// sends it to the Signal Sciences Agent for inspection. The module is configured
+// via functional options.
+func NewModule(h http.Handler, options ...ModuleConfigOption) (*Module, error) {
 	// The following are the defaults, overridden by passing in functional options
 	m := Module{
 		handler:          h,
@@ -100,7 +104,7 @@ func Version() string {
 }
 
 // Debug turns on debug logging
-func Debug(enable bool) func(*Module) error {
+func Debug(enable bool) ModuleConfigOption {
 	return func(m *Module) error {
 		m.debug = enable
 		return nil
@@ -111,7 +115,7 @@ func Debug(enable bool) func(*Module) error {
 // Signal Sciences Agent. The network argument should be `unix`
 // or `tcp` and the corresponding address should be either an absolute
 // path or an `address:port`, respectively.
-func Socket(network, address string) func(*Module) error {
+func Socket(network, address string) ModuleConfigOption {
 	return func(m *Module) error {
 		switch network {
 		case "unix":
@@ -135,7 +139,7 @@ func Socket(network, address string) func(*Module) error {
 
 // AnomalySize is a function argument to indicate when to send data to
 // the inspector if the response was abnormally large
-func AnomalySize(size int64) func(*Module) error {
+func AnomalySize(size int64) ModuleConfigOption {
 	return func(m *Module) error {
 		m.anomalySize = size
 		return nil
@@ -144,7 +148,7 @@ func AnomalySize(size int64) func(*Module) error {
 
 // AnomalyDuration is a function argument to indicate when to send data
 // to the inspector if the response was abnormally slow
-func AnomalyDuration(dur time.Duration) func(*Module) error {
+func AnomalyDuration(dur time.Duration) ModuleConfigOption {
 	return func(m *Module) error {
 		m.anomalyDuration = dur
 		return nil
@@ -153,7 +157,7 @@ func AnomalyDuration(dur time.Duration) func(*Module) error {
 
 // MaxContentLength is a function argument to set the maximum post
 // body length that will be processed
-func MaxContentLength(size int64) func(*Module) error {
+func MaxContentLength(size int64) ModuleConfigOption {
 	return func(m *Module) error {
 		m.maxContentLength = size
 		return nil
@@ -163,7 +167,7 @@ func MaxContentLength(size int64) func(*Module) error {
 // Timeout is a function argument that sets the maximum time to wait until
 // receiving a reply from the inspector. Once this timeout is reached, the
 // module will fail open.
-func Timeout(t time.Duration) func(*Module) error {
+func Timeout(t time.Duration) ModuleConfigOption {
 	return func(m *Module) error {
 		m.timeout = t
 		return nil
@@ -173,7 +177,7 @@ func Timeout(t time.Duration) func(*Module) error {
 // ModuleIdentifier is a function argument that sets the module name
 // and version for custom setups.
 // The version should be a sem-version (e.g., "1.2.3")
-func ModuleIdentifier(name, version string) func(*Module) error {
+func ModuleIdentifier(name, version string) ModuleConfigOption {
 	return func(m *Module) error {
 		m.moduleVersion = name + " " + version
 		return nil
@@ -182,7 +186,7 @@ func ModuleIdentifier(name, version string) func(*Module) error {
 
 // ServerIdentifier is a function argument that sets the server
 // identifier for custom setups
-func ServerIdentifier(id string) func(*Module) error {
+func ServerIdentifier(id string) ModuleConfigOption {
 	return func(m *Module) error {
 		m.serverVersion = id
 		return nil
@@ -192,7 +196,7 @@ func ServerIdentifier(id string) func(*Module) error {
 // CustomInspector is a function argument that sets a custom inspector,
 // an optional inspector initializer to decide if inspection should occur, and
 // an optional inspector finalizer that can perform any post-inspection steps
-func CustomInspector(insp Inspector, init InspectorInitFunc, fini InspectorFiniFunc) func(*Module) error {
+func CustomInspector(insp Inspector, init InspectorInitFunc, fini InspectorFiniFunc) ModuleConfigOption {
 	return func(m *Module) error {
 		m.inspector = insp
 		m.inspInit = init
@@ -396,7 +400,6 @@ func (m *Module) inspectorUpdateRequest(inspin RPCMsgIn2) error {
 // End-users of the golang module never need to use this
 // directly and it is only exposed for performance testing
 func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur time.Duration, module, server string) *RPCMsgIn {
-	// TODO: change to when request came in
 	now := time.Now().UTC()
 
 	// assemble a message to send to inspector
@@ -454,7 +457,7 @@ func shouldReadBody(req *http.Request, m *Module) bool {
 		return false
 	}
 
-	// skip reading post is invalid or too long
+	// skip reading - post is invalid or too long
 	if req.ContentLength < 0 || req.ContentLength > m.maxContentLength {
 		return false
 	}
@@ -463,6 +466,7 @@ func shouldReadBody(req *http.Request, m *Module) bool {
 	return inspectableContentType(req.Header.Get("Content-Type"))
 }
 
+// inspectableContentType returns true for an inspectable content type
 func inspectableContentType(s string) bool {
 	s = strings.ToLower(s)
 	switch {
