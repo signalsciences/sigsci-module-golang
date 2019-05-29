@@ -4,6 +4,8 @@
 
 * Updated list of inspectable XML content types
 * Added `http.Flusher` interface when the underlying handler supports this interface
+* Updated timeout to include time to connect to the agent
+* Cleaned up docs/code/examples
 
 ## 1.5.0 2019-01-31
 
