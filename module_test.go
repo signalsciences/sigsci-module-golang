@@ -64,14 +64,117 @@ func TestNewRPCMsgFromRequest(t *testing.T) {
 }
 
 // helper functions
+
 func TestStripPort(t *testing.T) {
-	got := stripPort("127.0.0.1:8000")
-	if got != "127.0.0.1" {
-		t.Errorf("StripPort(%q) = %q, want %q", "127.0.0.1:8000", got, "127.0.0.1")
+	cases := []struct {
+		want    string
+		content string
+	}{
+		// Invalid, should not change
+		{"", ""},
+		{"foo:bar:baz", "foo:bar:baz"},
+		// Valid, should have port removed if exists
+		{"127.0.0.1", "127.0.0.1"},
+		{"127.0.0.1", "127.0.0.1:8000"},
+	}
+	for pos, tt := range cases {
+		got := stripPort(tt.content)
+		if got != tt.want {
+			t.Errorf("test %d: StripPort(%q) = %q, want %q", pos, tt.content, got, tt.want)
+		}
 	}
 }
 
-func TestCheckContentType(t *testing.T) {
+func TestShouldReadBody(t *testing.T) {
+	m, err := NewModule(
+		http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			status := http.StatusOK
+			http.Error(w, fmt.Sprintf("%d %s\n", status, http.StatusText(status)), status)
+		}),
+		MaxContentLength(20),
+	)
+	if err != nil {
+		t.Fatalf("Failed to create module: %s", err)
+	}
+
+	cases := []struct {
+		want   bool
+		genreq func() []byte
+	}{
+		{false, func() []byte {
+			return genTestRequest("GET", "http://example.com/", "", "")
+		}},
+		{false, func() []byte {
+			return genTestRequest("GET", "http://example.com/", "bad/type", `{}`)
+		}},
+		{true, func() []byte {
+			return genTestRequest("GET", "http://example.com/", "application/json", `{}`)
+		}},
+		{false, func() []byte {
+			return genTestRequest("GET", "http://example.com/", "application/json", `{"foo":"12345678901234567890"}`)
+		}},
+	}
+
+	for pos, tt := range cases {
+		req, err := requestParseRaw("127.0.0.1:59000", tt.genreq())
+		if err != nil {
+			t.Fatalf("Failed to generate request: %s", err)
+		}
+		got := shouldReadBody(req, m)
+		if got != tt.want {
+			t.Errorf("test %d: expected %v got %v", pos, tt.want, got)
+		}
+	}
+}
+
+func TestConvertHeaders(t *testing.T) {
+	cases := []struct {
+		want    [][2]string // Only the order of like keys matters
+		content http.Header // Order of values matter
+	}{
+		// Empty
+		{
+			[][2]string{},
+			http.Header{},
+		},
+		// Single values
+		{
+			[][2]string{
+				{http.CanonicalHeaderKey("a"), "val a"},
+				{http.CanonicalHeaderKey("b"), "val b"},
+			}, http.Header{
+				http.CanonicalHeaderKey("a"): {"val a"},
+				http.CanonicalHeaderKey("b"): {"val b"},
+			},
+		},
+		// Multiple values
+		{
+			[][2]string{
+				{http.CanonicalHeaderKey("a"), "val a"},
+				{http.CanonicalHeaderKey("b"), "val b1"},
+				{http.CanonicalHeaderKey("b"), "val b2"},
+			}, http.Header{
+				http.CanonicalHeaderKey("a"): {"val a"},
+				http.CanonicalHeaderKey("b"): {"val b1", "val b2"},
+			},
+		},
+	}
+
+	for pos, tt := range cases {
+		got := convertHeaders(tt.content)
+
+		// Convert result back to a http.Header for comparison
+		hmap := http.Header{}
+		for _, v := range got {
+			hmap.Add(v[0], v[1])
+		}
+		if !reflect.DeepEqual(tt.content, hmap) {
+			t.Errorf("test %d: expected %#v, got %#v", pos, tt.content, hmap)
+		}
+	}
+}
+
+func TestInspectableContentType(t *testing.T) {
 	cases := []struct {
 		want    bool
 		content string
@@ -81,6 +184,9 @@ func TestCheckContentType(t *testing.T) {
 		{true, "multipart/form-data"},
 		{true, "text/xml"},
 		{true, "application/xml"},
+		{true, "text/xml;charset=UTF-8"},
+		{true, "application/xml; charset=iso-2022-kr"},
+		{true, "application/rss+xml"},
 		{true, "application/json"},
 		{true, "application/x-javascript"},
 		{true, "text/javascript"},
@@ -92,9 +198,9 @@ func TestCheckContentType(t *testing.T) {
 	}
 
 	for pos, tt := range cases {
-		got := checkContentType(tt.content)
+		got := inspectableContentType(tt.content)
 		if got != tt.want {
-			t.Errorf("[%d] expected %v got %v", pos, tt.want, got)
+			t.Errorf("test %d: expected %v got %v", pos, tt.want, got)
 		}
 	}
 }
@@ -203,7 +309,7 @@ func genTestRequest(meth, uri, ctype, payload string) []byte {
 
 	req.Header.Set(`User-Agent`, `SigSci Module Tester/0.1`)
 	if len(ctype) > 0 {
-		req.Header.Set(`Content-Type`, `application/x-www-form-urlencoded`)
+		req.Header.Set(`Content-Type`, ctype)
 	}
 
 	// This will add some extra headers typically added by the client

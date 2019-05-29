@@ -19,8 +19,9 @@ import (
 
 const moduleVersion = "sigsci-module-golang " + version
 
-// Module is an http.Handler that wraps inbound communication and
-// sends it to the Signal Sciences Agent.
+// Module is an http.Handler that wraps an existing handler with
+// data collection and sends it to the Signal Sciences Agent for
+// inspection.
 type Module struct {
 	handler          http.Handler
 	rpcNetwork       string
@@ -37,12 +38,11 @@ type Module struct {
 	inspFini         InspectorFiniFunc
 }
 
-// NewModule wraps an http.Handler use the Signal Sciences Agent
+// NewModule wraps an existing http.Handler that uses the Signal Sciences Agent.
 // Configuration is based on 'functional options' as mentioned in:
 // https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
 func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) {
-	// the following are the defaults
-	// you over-ride them by passing in function arguments
+	// The following are the defaults, overridden by passing in functional options
 	m := Module{
 		handler:          h,
 		rpcNetwork:       "unix",
@@ -56,7 +56,7 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 		serverVersion:    runtime.Version(),
 	}
 
-	// override defaults from function args
+	// Override defaults from functional options
 	for _, opt := range options {
 		err := opt(&m)
 		if err != nil {
@@ -64,6 +64,7 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 		}
 	}
 
+	// By default, use an RPC based inspector
 	if m.inspector == nil {
 		m.inspector = &RPCInspector{
 			Network: m.rpcNetwork,
@@ -73,6 +74,8 @@ func NewModule(h http.Handler, options ...func(*Module) error) (*Module, error) 
 		}
 	}
 
+	// Call ModuleInit to initialize the module data, so that the agent is
+	// registered on module creation
 	now := time.Now().UTC()
 	in := RPCMsgIn{
 		ModuleVersion: m.moduleVersion,
@@ -105,7 +108,9 @@ func Debug(enable bool) func(*Module) error {
 }
 
 // Socket is a function argument to set where to send data to the
-// Signal Sciences Agent
+// Signal Sciences Agent. The network argument should be `unix`
+// or `tcp` and the corresponding address should be either an absolute
+// path or an `address:port`, respectively.
 func Socket(network, address string) func(*Module) error {
 	return func(m *Module) error {
 		switch network {
@@ -128,8 +133,8 @@ func Socket(network, address string) func(*Module) error {
 	}
 }
 
-// AnomalySize is a function argument to send data to the inspector if the
-// response was abnormally large
+// AnomalySize is a function argument to indicate when to send data to
+// the inspector if the response was abnormally large
 func AnomalySize(size int64) func(*Module) error {
 	return func(m *Module) error {
 		m.anomalySize = size
@@ -137,8 +142,8 @@ func AnomalySize(size int64) func(*Module) error {
 	}
 }
 
-// AnomalyDuration is a function argument to send data to the inspector if
-// the response was abnormally slow
+// AnomalyDuration is a function argument to indicate when to send data
+// to the inspector if the response was abnormally slow
 func AnomalyDuration(dur time.Duration) func(*Module) error {
 	return func(m *Module) error {
 		m.anomalyDuration = dur
@@ -155,8 +160,9 @@ func MaxContentLength(size int64) func(*Module) error {
 	}
 }
 
-// Timeout is a function argument that sets the time to wait until
-// receiving a reply from the inspector
+// Timeout is a function argument that sets the maximum time to wait until
+// receiving a reply from the inspector. Once this timeout is reached, the
+// module will fail open.
 func Timeout(t time.Duration) func(*Module) error {
 	return func(m *Module) error {
 		m.timeout = t
@@ -185,7 +191,7 @@ func ServerIdentifier(id string) func(*Module) error {
 
 // CustomInspector is a function argument that sets a custom inspector,
 // an optional inspector initializer to decide if inspection should occur, and
-// an optional inspector finalizer that can perform and post-inspection steps
+// an optional inspector finalizer that can perform any post-inspection steps
 func CustomInspector(insp Inspector, init InspectorInitFunc, fini InspectorFiniFunc) func(*Module) error {
 	return func(m *Module) error {
 		m.inspector = insp
@@ -201,7 +207,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// Use the inspector init/fini functions if available
 	if m.inspInit != nil && !m.inspInit(req) {
-		// Fail open
+		// No inspection is desired, so just defer to the underlying handler
 		m.handler.ServeHTTP(w, req)
 		return
 	}
@@ -257,11 +263,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
 			}
 		}()
-
-		return
-	}
-
-	if code >= 300 || size >= m.anomalySize || duration >= m.anomalyDuration {
+	} else if code >= 300 || size >= m.anomalySize || duration >= m.anomalyDuration {
 		// Do the PostRequest inspection in the background while the foreground hurries the response back to the end-user.
 		if m.debug {
 			log.Printf("DEBUG: calling 'RPC.PostRequest' due to anomaly: method=%s host=%s url=%s code=%d size=%d duration=%s", req.Method, req.Host, req.URL, code, size, duration)
@@ -299,7 +301,7 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 	// see if we can read-in the post body
 
 	var postbody []byte
-	if readPost(req, m) {
+	if shouldReadBody(req, m) {
 		// Read all of it and close
 		// if error, just keep going
 		// It's possible that it is an error event
@@ -397,7 +399,7 @@ func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur tim
 	// TODO: change to when request came in
 	now := time.Now().UTC()
 
-	// assemble an message to send to inspector
+	// assemble a message to send to inspector
 	tlsProtocol := ""
 	tlsCipher := ""
 	scheme := "http"
@@ -410,7 +412,6 @@ func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur tim
 
 	// golang removes Host header from req.Header map and
 	// promotes it to r.Host field. Add it back as the first header.
-	// See: https://github.com/signalsciences/sigsci/issues/8336
 	hin := convertHeaders(r.Header)
 	if len(r.Host) > 0 {
 		hin = append([][2]string{{"Host", r.Host}}, hin...)
@@ -419,7 +420,6 @@ func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur tim
 	return &RPCMsgIn{
 		ModuleVersion:  module,
 		ServerVersion:  server,
-		ServerFlavor:   "", /* not sure what should be here */
 		ServerName:     r.Host,
 		Timestamp:      now.Unix(),
 		NowMillis:      now.UnixNano() / 1e6,
@@ -438,8 +438,7 @@ func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur tim
 	}
 }
 
-// stripPort removes any ending port from an IP address
-// Go appears to add this when the client is from localhost ( e.g. "127.0.0.1:12312" )
+// stripPort removes any port from an address (e.g., the client port from the RemoteAddr)
 func stripPort(ipdots string) string {
 	host, _, err := net.SplitHostPort(ipdots)
 	if err != nil {
@@ -448,26 +447,23 @@ func stripPort(ipdots string) string {
 	return host
 }
 
-// readPost returns True if we should read a postbody
-func readPost(req *http.Request, m *Module) bool {
+// shouldReadBody returns true if the body should be read
+func shouldReadBody(req *http.Request, m *Module) bool {
 	// nothing to do
 	if req.Body == nil {
 		return false
 	}
 
-	// skip reading post if too long
-	if req.ContentLength < 0 {
-		return false
-	}
-	if req.ContentLength > m.maxContentLength {
+	// skip reading post is invalid or too long
+	if req.ContentLength < 0 || req.ContentLength > m.maxContentLength {
 		return false
 	}
 
 	// only read certain types of content
-	return checkContentType(req.Header.Get("Content-Type"))
+	return inspectableContentType(req.Header.Get("Content-Type"))
 }
 
-func checkContentType(s string) bool {
+func inspectableContentType(s string) bool {
 	s = strings.ToLower(s)
 	switch {
 

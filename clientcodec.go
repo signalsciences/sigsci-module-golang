@@ -67,8 +67,8 @@ func (c msgpClientCodec) WriteRequest(r *rpc.Request, x interface{}) error {
 	return nil
 }
 
-// checkError checks the error against known errors, does any fixups and returns an error to indicate it is a known error that should not be handled further as well as the replaced error. A nil error is returned if the original error should be handled further.
-func checkError(err error) error {
+// knownError checks the error against known errors, does any fixups and returns an error to indicate it is a known error that should not be handled further as well as the replaced error. A nil error is returned if the original error should be handled further.
+func knownError(err error) error {
 	if err == nil {
 		return nil
 	}
@@ -86,7 +86,7 @@ func checkError(err error) error {
 func (c msgpClientCodec) ReadResponseHeader(r *rpc.Response) error {
 	sz, err := c.dec.ReadArrayHeader()
 	if err != nil || sz != 4 {
-		if cerr := checkError(err); cerr != nil {
+		if cerr := knownError(err); cerr != nil {
 			return cerr
 		}
 		if err == nil && sz != 4 {
@@ -97,7 +97,7 @@ func (c msgpClientCodec) ReadResponseHeader(r *rpc.Response) error {
 
 	msgtype, err := c.dec.ReadUint()
 	if err != nil || msgtype != 1 {
-		if cerr := checkError(err); cerr != nil {
+		if cerr := knownError(err); cerr != nil {
 			return cerr
 		}
 		if err == nil && msgtype != 1 {
@@ -108,7 +108,7 @@ func (c msgpClientCodec) ReadResponseHeader(r *rpc.Response) error {
 
 	seqID, err := c.dec.ReadUint()
 	if err != nil {
-		if cerr := checkError(err); cerr != nil {
+		if cerr := knownError(err); cerr != nil {
 			return cerr
 		}
 		return fmt.Errorf("ReadResponseHeader failed in error type: %s", err)
@@ -117,7 +117,7 @@ func (c msgpClientCodec) ReadResponseHeader(r *rpc.Response) error {
 
 	err = c.dec.ReadNil()
 	if err != nil {
-		if cerr := checkError(err); cerr != nil {
+		if cerr := knownError(err); cerr != nil {
 			return cerr
 		}
 		// if there is an error maybe its not nil
@@ -125,7 +125,7 @@ func (c msgpClientCodec) ReadResponseHeader(r *rpc.Response) error {
 		//  then assume its bad response
 		rawerr, err := c.dec.ReadString()
 		if err != nil {
-			if cerr := checkError(err); cerr != nil {
+			if cerr := knownError(err); cerr != nil {
 				return cerr
 			}
 			return fmt.Errorf("ReadResponseHeader failed in error message: %s", err)
@@ -143,7 +143,7 @@ func (c msgpClientCodec) ReadResponseBody(x interface{}) error {
 	// if its a decode-able object, then sort it out.
 	if obj, ok := x.(msgp.Decodable); ok {
 		if err := obj.DecodeMsg(c.dec); err != nil {
-			if cerr := checkError(err); cerr != nil {
+			if cerr := knownError(err); cerr != nil {
 				return cerr
 			}
 			return fmt.Errorf("ReadResponseBody failed in obj decode: %s", err)
@@ -157,7 +157,7 @@ func (c msgpClientCodec) ReadResponseBody(x interface{}) error {
 	if xint, ok := x.(*int); ok {
 		val, err := c.dec.ReadInt()
 		if err != nil {
-			if cerr := checkError(err); cerr != nil {
+			if cerr := knownError(err); cerr != nil {
 				return cerr
 			}
 			return fmt.Errorf("ReadResponseBody failed in int decode: %s", err)
