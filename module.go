@@ -248,10 +248,9 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		m.handler.ServeHTTP(rw, req)
 	}
 
-	end := time.Now().UTC()
+	duration := time.Since(start)
 	code := rw.StatusCode()
 	size := rw.BytesWritten()
-	duration := end.Sub(start)
 
 	if inspin2.RequestID != "" {
 		// Do the UpdateRequest inspection in the background while the foreground hurries the response back to the end-user.
