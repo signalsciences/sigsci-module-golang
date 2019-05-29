@@ -55,7 +55,7 @@ func (ri *RPCInspector) PostRequest(in *RPCMsgIn, out *RPCMsgOut) error {
 		err = client.Call("RPC.PostRequest", in, &rpcout)
 		ri.CloseRPCClient(client, err)
 
-		// Fake the output until RPC call is updated
+		// Always success as the rpcout is not currently used
 		out.WAFResponse = 200
 		out.RequestID = ""
 		out.RequestHeaders = nil
@@ -77,7 +77,7 @@ func (ri *RPCInspector) UpdateRequest(in *RPCMsgIn2, out *RPCMsgOut) error {
 		err = client.Call("RPC.UpdateRequest", in, &rpcout)
 		ri.CloseRPCClient(client, err)
 
-		// Fake the output until RPC call is updated
+		// Always success as the rpcout is not currently used
 		out.WAFResponse = 200
 		out.RequestID = ""
 		out.RequestHeaders = nil
@@ -110,11 +110,12 @@ func (ri *RPCInspector) CloseRPCClient(client *rpc.Client, err error) {
 }
 
 func (ri *RPCInspector) makeConnection() (net.Conn, error) {
+	deadline := time.Now().Add(ri.Timeout)
 	conn, err := net.DialTimeout(ri.Network, ri.Address, ri.Timeout)
 	if err != nil {
 		return nil, err
 	}
-	conn.SetDeadline(time.Now().Add(ri.Timeout))
+	conn.SetDeadline(deadline)
 	return conn, nil
 }
 
