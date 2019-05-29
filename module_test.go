@@ -101,17 +101,25 @@ func TestShouldReadBody(t *testing.T) {
 		want   bool
 		genreq func() []byte
 	}{
+		// No C-T
 		{false, func() []byte {
 			return genTestRequest("GET", "http://example.com/", "", "")
 		}},
+		// Invalid C-T
 		{false, func() []byte {
 			return genTestRequest("GET", "http://example.com/", "bad/type", `{}`)
 		}},
-		{true, func() []byte {
-			return genTestRequest("GET", "http://example.com/", "application/json", `{}`)
+		// Zero length
+		{false, func() []byte {
+			return genTestRequest("GET", "http://example.com/", "application/json", ``)
 		}},
+		// Too long
 		{false, func() []byte {
 			return genTestRequest("GET", "http://example.com/", "application/json", `{"foo":"12345678901234567890"}`)
+		}},
+		// Good to read
+		{true, func() []byte {
+			return genTestRequest("GET", "http://example.com/", "application/json", `{}`)
 		}},
 	}
 

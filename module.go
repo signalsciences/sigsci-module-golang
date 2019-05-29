@@ -457,7 +457,7 @@ func shouldReadBody(req *http.Request, m *Module) bool {
 	}
 
 	// skip reading if post is invalid or too long
-	if req.ContentLength < 0 || req.ContentLength > m.maxContentLength {
+	if req.ContentLength <= 0 || req.ContentLength > m.maxContentLength {
 		return false
 	}
 
