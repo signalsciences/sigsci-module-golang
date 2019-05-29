@@ -252,7 +252,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	code := rw.StatusCode()
 	size := rw.BytesWritten()
 
-	if inspin2.RequestID != "" {
+	if len(inspin2.RequestID) > 0 {
 		// Do the UpdateRequest inspection in the background while the foreground hurries the response back to the end-user.
 		inspin2.ResponseCode = int32(code)
 		inspin2.ResponseSize = size
