@@ -3,10 +3,12 @@
 ## Unreleased
 
 * Updated list of inspectable XML content types
+* Added `http.Flusher` interface when the underlying handler supports this interface
 
 ## 1.5.0 2019-01-31
 
 * Switched Update / Post RPC call to async
+* Internal release for agent reverse proxy
 
 ## 1.4.3 2018-08-07
 
