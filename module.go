@@ -298,28 +298,28 @@ func (m *Module) ServerVersion() string {
 	return m.serverVersion
 }
 
-// inspectorPreRequest makes a prerequest call to the inspector
+// inspectorPreRequest reads the body if required and makes a prerequest call to the inspector
 func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out RPCMsgOut, err error) {
 	// Create message to the inspector from the input request
 	// see if we can read-in the post body
 
-	var postbody []byte
+	var reqbody []byte
 	if shouldReadBody(req, m) {
 		// Read all of it and close
 		// if error, just keep going
 		// It's possible that it is an error event
 		// but not sure what it is. Likely
 		// the client disconnected.
-		postbody, _ = ioutil.ReadAll(req.Body)
+		reqbody, _ = ioutil.ReadAll(req.Body)
 		req.Body.Close()
 
 		// make a new reader so the next handler
 		// can still read the post normally as if
 		// nothing happened
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(postbody))
+		req.Body = ioutil.NopCloser(bytes.NewBuffer(reqbody))
 	}
 
-	inspin := NewRPCMsgIn(req, postbody, -1, -1, -1, m.moduleVersion, m.serverVersion)
+	inspin := NewRPCMsgIn(req, reqbody, -1, -1, -1, m.moduleVersion, m.serverVersion)
 
 	if m.debug {
 		log.Printf("DEBUG: Making PreRequest call to inspector: %s %s", inspin.Method, inspin.URI)
@@ -456,7 +456,7 @@ func shouldReadBody(req *http.Request, m *Module) bool {
 		return false
 	}
 
-	// skip reading - post is invalid or too long
+	// skip reading if post is invalid or too long
 	if req.ContentLength < 0 || req.ContentLength > m.maxContentLength {
 		return false
 	}
