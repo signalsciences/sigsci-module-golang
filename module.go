@@ -219,7 +219,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	if m.inspFini != nil {
 		defer func() {
-			// Delay the finializer call until inspection (any pending Post
+			// Delay the finalizer call until inspection (any pending Post
 			// or Update call) is complete
 			go func() {
 				finiwg.Wait()
