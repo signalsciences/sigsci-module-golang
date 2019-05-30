@@ -1,6 +1,6 @@
 # GoLang Module Release Notes
 
-## 1.6.0 2019-05-29
+## 1.6.0 2019-05-30
 
 * Updated list of inspectable XML content types
 * Added `http.Flusher` interface when the underlying handler supports this interface

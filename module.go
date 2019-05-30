@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/signalsciences/tlstext"
@@ -208,6 +209,7 @@ func CustomInspector(insp Inspector, init InspectorInitFunc, fini InspectorFiniF
 // ServeHTTP satisfies the http.Handler interface
 func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	start := time.Now().UTC()
+	finiwg := sync.WaitGroup{}
 
 	// Use the inspector init/fini functions if available
 	if m.inspInit != nil && !m.inspInit(req) {
@@ -216,7 +218,14 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if m.inspFini != nil {
-		defer m.inspFini(req)
+		defer func() {
+			// Delay the finalizer call until inspection (any pending Post
+			// or Update call) is complete
+			go func() {
+				finiwg.Wait()
+				m.inspFini(req)
+			}()
+		}()
 	}
 
 	if m.debug {
@@ -261,7 +270,9 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if m.debug {
 			log.Printf("DEBUG: calling 'RPC.UpdateRequest' due to returned requestid=%s: method=%s host=%s url=%s code=%d size=%d duration=%s", inspin2.RequestID, req.Method, req.Host, req.URL, code, size, duration)
 		}
+		finiwg.Add(1) // Inspection finializer will wait for this goroutine
 		go func() {
+			defer finiwg.Done()
 			if err := m.inspectorUpdateRequest(inspin2); err != nil && m.debug {
 				log.Printf("ERROR: 'RPC.UpdateRequest' call failed: %s", err.Error())
 			}
@@ -275,7 +286,9 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		inspin.WAFResponse = wafresponse
 		inspin.HeadersOut = convertHeaders(rw.Header())
 
+		finiwg.Add(1) // Inspection finializer will wait for this goroutine
 		go func() {
+			defer finiwg.Done()
 			if err := m.inspectorPostRequest(inspin); err != nil && m.debug {
 				log.Printf("ERROR: 'RPC.PostRequest' call failed: %s", err.Error())
 			}
