@@ -25,8 +25,7 @@ set -x
 # attempt to clean up any leftover junk
 $DOCKERCOMPOSE down
 
-# always get latest agent
-$DOCKERCOMPOSE pull
+$DOCKERCOMPOSE pull --ignore-pull-failures
 
 # start everything, run tests
 #
