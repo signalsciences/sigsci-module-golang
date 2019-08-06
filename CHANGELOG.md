@@ -1,8 +1,5 @@
 # GoLang Module Release Notes
 
-## Unreleased
-
-
 ## 1.6.1 2019-06-13
 
 * Cleaned up internal code
