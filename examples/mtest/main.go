@@ -37,6 +37,9 @@ func helloworld(w http.ResponseWriter, r *http.Request) {
 	var qs url.Values
 	if r.URL != nil {
 		qs, err = url.ParseQuery(r.URL.RawQuery)
+		if err != nil {
+			log.Println("url.ParseQuery err:", err)
+		}
 	}
 	if qs == nil {
 		qs = make(url.Values)
