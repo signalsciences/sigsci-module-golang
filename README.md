@@ -1,5 +1,7 @@
 # sigsci-module-golang
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/signalsciences/sigsci-module-golang)](https://goreportcard.com/report/github.com/signalsciences/sigsci-module-golang)
+
 The Signal Sciences module in golang allows for integrating your golang
 application directly with the Signal Sciences agent at the source code
 level. This golang module is written as a `http.Handler` wrapper. To
