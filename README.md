@@ -1,3 +1,6 @@
+
+[![GoDoc][doc-img]][doc]
+
 # sigsci-module-golang
 
 The Signal Sciences module in golang allows for integrating your golang
@@ -61,3 +64,6 @@ go run examples/helloworld/main.go localhost:9999
 
 This will run a HTTP listener on `localhost:8000`, which will send any
 traffic to this listener to a running sigsci-agent for inspection.
+
+[doc-img]: https://godoc.org/github.com/signalsciences/sigsci-module-golang?status.svg
+[doc]: https://godoc.org/github.com/signalsciences/sigsci-module-golang
