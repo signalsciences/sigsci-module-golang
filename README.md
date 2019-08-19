@@ -3,9 +3,9 @@
 
 # sigsci-module-golang
 
-The Signal Sciences module in golang allows for integrating your golang
+The Signal Sciences module in Golang allows for integrating your Golang
 application directly with the Signal Sciences agent at the source code
-level. This golang module is written as a `http.Handler` wrapper. To
+level. It is written as an `http.Handler` wrapper. To
 integrate your application with the module, you will need to wrap your
 existing handler with the module handler.
 
@@ -62,7 +62,7 @@ go run examples/helloworld/main.go /tmp/sigsci.sock
 go run examples/helloworld/main.go localhost:9999
 ```
 
-This will run a HTTP listener on `localhost:8000`, which will send any
+This will run an HTTP listener on `localhost:8000`, which will send any
 traffic to this listener to a running sigsci-agent for inspection.
 
 [doc-img]: https://godoc.org/github.com/signalsciences/sigsci-module-golang?status.svg
