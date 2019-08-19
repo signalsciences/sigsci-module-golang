@@ -6,7 +6,10 @@ level. This golang module is written as a `http.Handler` wrapper. To
 integrate your application with the module, you will need to wrap your
 existing handler with the module handler.
 
-Example Code Snippet:
+## Installation
+`go get github.com/signalsciences/sigsci-module-golang`
+
+## Example Code Snippet
 ```go
 // Existing http.Handler
 mux := http.NewServeMux()
