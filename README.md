@@ -36,22 +36,6 @@ s := &http.Server{
 log.Fatal(s.ListenAndServe())
 ```
 
-## Dependencies
-
-The golang module requires two prerequisite packages to be installed:
-[MessagePack Code Generator](https://github.com/tinylib/msgp/) and the
-Signal Sciences custom [tlstext](https://github.com/signalsciences/tlstext)
-package.
-
-The easiest way to install these packages is by using the `go get`
-command to download and install these packages directly from their
-public GitHub repositories:
-
-```bash
-go get -u -t github.com/tinylib/msgp/msgp
-go get -u -t github.com/signalsciences/tlstext
-```
-
 ## Examples
 
 The [examples](examples/) directory contains complete example code.
