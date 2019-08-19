@@ -1,5 +1,5 @@
 
-[![GoDoc][doc-img]][doc]
+[![grc][grc-img]][grc] [![GoDoc][doc-img]][doc]
 
 # sigsci-module-golang
 
@@ -67,3 +67,5 @@ traffic to this listener to a running sigsci-agent for inspection.
 
 [doc-img]: https://godoc.org/github.com/signalsciences/sigsci-module-golang?status.svg
 [doc]: https://godoc.org/github.com/signalsciences/sigsci-module-golang
+[grc-img]: https://goreportcard.com/badge/github.com/signalsciences/sigsci-module-golang 
+[grc]: https://goreportcard.com/report/github.com/signalsciences/sigsci-module-golang
