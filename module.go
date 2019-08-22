@@ -37,6 +37,7 @@ type Module struct {
 	inspector        Inspector
 	inspInit         InspectorInitFunc
 	inspFini         InspectorFiniFunc
+	headerExtractor  func(*http.Request) (http.Header, error)
 }
 
 // ModuleConfigOption is a functional config option for configuring the module
@@ -206,6 +207,16 @@ func CustomInspector(insp Inspector, init InspectorInitFunc, fini InspectorFiniF
 	}
 }
 
+// CustomHeaderExtractor is a function argument that sets a function to extract
+// an alternative header object from the request. It is primarily intended only
+// for internal use.
+func CustomHeaderExtractor(fn func(r *http.Request) (http.Header, error)) ModuleConfigOption {
+	return func(m *Module) error {
+		m.headerExtractor = fn
+		return nil
+	}
+}
+
 // ServeHTTP satisfies the http.Handler interface
 func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	start := time.Now().UTC()
@@ -333,6 +344,18 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 	}
 
 	inspin := NewRPCMsgIn(req, reqbody, -1, -1, -1, m.moduleVersion, m.serverVersion)
+
+	// If the user supplied a custom header extractor, use it to unpack the
+	// headers. If there no custom header extractor or it returns an error,
+	// fallback to the native headers on the request.
+	if m.headerExtractor != nil {
+		hin, err := m.headerExtractor(req)
+		if err == nil {
+			inspin.HeadersIn = convertHeaders(hin)
+		} else if m.debug {
+			log.Printf("DEBUG: Error extracting custom headers, using native headers: %s", err)
+		}
+	}
 
 	if m.debug {
 		log.Printf("DEBUG: Making PreRequest call to inspector: %s %s", inspin.Method, inspin.URI)
