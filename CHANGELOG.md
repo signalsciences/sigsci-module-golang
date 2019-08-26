@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.6.2 2019-08-25
+
+* Added support for a custom header extractor fn
+
 ## 1.6.1 2019-06-13
 
 * Cleaned up internal code
