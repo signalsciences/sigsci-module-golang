@@ -2,6 +2,7 @@ package sigsci
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -25,6 +26,10 @@ func (w *testResponseRecorder) Write(b []byte) (int, error) {
 	return w.Recorder.Write(b)
 }
 
+func (w *testResponseRecorder) ReadFrom(r io.Reader) (n int64, err error) {
+	return io.Copy(w.Recorder, r)
+}
+
 // testResponseRecorderFlusher is a httptest.ResponseRecorder with the Flusher interface
 type testResponseRecorderFlusher struct {
 	Recorder *httptest.ResponseRecorder
@@ -40,6 +45,10 @@ func (w *testResponseRecorderFlusher) WriteHeader(status int) {
 
 func (w *testResponseRecorderFlusher) Write(b []byte) (int, error) {
 	return w.Recorder.Write(b)
+}
+
+func (w *testResponseRecorderFlusher) ReadFrom(r io.Reader) (n int64, err error) {
+	return io.Copy(w.Recorder, r)
 }
 
 func (w *testResponseRecorderFlusher) Flush() {
