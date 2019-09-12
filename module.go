@@ -294,6 +294,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			log.Printf("DEBUG: calling 'RPC.PostRequest' due to anomaly: method=%s host=%s url=%s code=%d size=%d duration=%s", req.Method, req.Host, req.URL, code, size, duration)
 		}
 		inspin := NewRPCMsgIn(req, nil, code, size, duration, m.moduleVersion, m.serverVersion)
+		m.extractHeaders(req, inspin)
 		inspin.WAFResponse = wafresponse
 		inspin.HeadersOut = convertHeaders(rw.Header())
 
@@ -344,18 +345,7 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 	}
 
 	inspin := NewRPCMsgIn(req, reqbody, -1, -1, -1, m.moduleVersion, m.serverVersion)
-
-	// If the user supplied a custom header extractor, use it to unpack the
-	// headers. If there no custom header extractor or it returns an error,
-	// fallback to the native headers on the request.
-	if m.headerExtractor != nil {
-		hin, err := m.headerExtractor(req)
-		if err == nil {
-			inspin.HeadersIn = convertHeaders(hin)
-		} else if m.debug {
-			log.Printf("DEBUG: Error extracting custom headers, using native headers: %s", err)
-		}
-	}
+	m.extractHeaders(req, inspin)
 
 	if m.debug {
 		log.Printf("DEBUG: Making PreRequest call to inspector: %s %s", inspin.Method, inspin.URI)
@@ -393,6 +383,20 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 	}
 
 	return
+}
+
+func (m *Module) extractHeaders(req *http.Request, inspin *RPCMsgIn) {
+	// If the user supplied a custom header extractor, use it to unpack the
+	// headers. If there no custom header extractor or it returns an error,
+	// fallback to the native headers on the request.
+	if m.headerExtractor != nil {
+		hin, err := m.headerExtractor(req)
+		if err == nil {
+			inspin.HeadersIn = convertHeaders(hin)
+		} else if m.debug {
+			log.Printf("DEBUG: Error extracting custom headers, using native headers: %s", err)
+		}
+	}
 }
 
 // inspectorPostRequest makes a postrequest call to the inspector
