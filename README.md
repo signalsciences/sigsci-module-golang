@@ -47,23 +47,18 @@ log.Fatal(s.ListenAndServe())
 The [examples](examples/) directory contains complete example code.
 
 To run the simple [helloworld](examples/helloworld/main.go) example:
-
 ```bash
+# Run __without__ sigsci enabled
 go run examples/helloworld/main.go
-```
-
-Or, if your agent is running with a non-default `rpc-address`, you can
-pass the sigsci-agent address as an argument such as one of the following:
-
-```bash
-# Another UNIX Domain socket
-go run examples/helloworld/main.go /tmp/sigsci.sock
-# A TCP address:port
+# Run with sigsci-agent listening via a UNIX Domain socket file
+go run examples/helloworld/main.go /var/run/sigsci.sock
+# Run with sigsci-agent listening via a TCP address:port
 go run examples/helloworld/main.go localhost:9999
 ```
 
-This will run an HTTP listener on `localhost:8000`, which will send any
-traffic to this listener to a running sigsci-agent for inspection.
+This will run a HTTP listener on `localhost:8000`, which will send any
+traffic to this listener to a running sigsci-agent for inspection (if
+configured).
 
 [doc-img]: https://godoc.org/github.com/signalsciences/sigsci-module-golang?status.svg
 [doc]: https://godoc.org/github.com/signalsciences/sigsci-module-golang
