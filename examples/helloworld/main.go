@@ -11,11 +11,20 @@ import (
 )
 
 func main() {
+	// Get the listener address from the first arg
+	listenerAddress := ""
+	if len(os.Args) > 1 {
+		listenerAddress = os.Args[1]
+	}
+	if len(listenerAddress) == 0 {
+		listenerAddress = "localhost:8000"
+	}
+
 	// Process sigsci-agent rpc-address if passed
 	sigsciAgentNetwork := "unix"
 	sigsciAgentAddress := ""
-	if len(os.Args) > 1 {
-		sigsciAgentAddress = os.Args[1]
+	if len(os.Args) > 2 {
+		sigsciAgentAddress = os.Args[2]
 	}
 	if !strings.Contains(sigsciAgentAddress, "/") {
 		sigsciAgentNetwork = "tcp"
@@ -56,7 +65,7 @@ func main() {
 	// Listen and Serve as usual using the wrapped sigsci handler if enabled
 	s := &http.Server{
 		Handler: handler,
-		Addr:    "localhost:8000",
+		Addr:    listenerAddress,
 	}
 	log.Printf("Server URL: http://%s/", s.Addr)
 	log.Fatal(s.ListenAndServe())
