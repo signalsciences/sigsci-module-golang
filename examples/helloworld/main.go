@@ -20,7 +20,7 @@ func main() {
 		listenerAddress = "localhost:8000"
 	}
 
-	// Process sigsci-agent rpc-address if passed
+	// Process sigsci-agent rpc-address from the optional second arg
 	sigsciAgentNetwork := "unix"
 	sigsciAgentAddress := ""
 	if len(os.Args) > 2 {
@@ -56,7 +56,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		log.Printf("Using sigsci-agent address (pass address as program argument to change): %s:%s", sigsciAgentNetwork, sigsciAgentAddress)
+		log.Printf("Signal Sciences agent RPC address: %s:%s", sigsciAgentNetwork, sigsciAgentAddress)
 
 		// Use the wrapped sigsci handler
 		handler = wrapped

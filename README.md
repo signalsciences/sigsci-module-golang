@@ -47,13 +47,13 @@ log.Fatal(s.ListenAndServe())
 The [examples](examples/) directory contains complete example code.
 
 To run the simple [helloworld](examples/helloworld/main.go) example:
-```bash
+```shell
 # Run __without__ sigsci enabled
-go run examples/helloworld/main.go localhost:8000
+go run ./examples/helloworld localhost:8000
 # Run with sigsci-agent listening via a UNIX Domain socket file
-go run examples/helloworld/main.go localhost:8000 /var/run/sigsci.sock
+go run ./examples/helloworld localhost:8000 /var/run/sigsci.sock
 # Run with sigsci-agent listening via a TCP address:port
-go run examples/helloworld/main.go localhost:8000 localhost:9999
+go run ./examples/helloworld localhost:8000 localhost:9999
 ```
 
 This will run a HTTP listener on `localhost:8000`, which will send any
