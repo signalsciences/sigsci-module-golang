@@ -11,45 +11,61 @@ import (
 )
 
 func main() {
-	// Process sigsci-agent rpc-address if passed
-	sigsciAgentNetwork := "unix"
-	sigsciAgentAddress := "/var/run/sigsci.sock"
+	// Get the listener address from the first arg
+	listenerAddress := ""
 	if len(os.Args) > 1 {
-		sigsciAgentAddress = os.Args[1]
+		listenerAddress = os.Args[1]
+	}
+	if len(listenerAddress) == 0 {
+		listenerAddress = "localhost:8000"
+	}
+
+	// Process sigsci-agent rpc-address from the optional second arg
+	sigsciAgentNetwork := "unix"
+	sigsciAgentAddress := ""
+	if len(os.Args) > 2 {
+		sigsciAgentAddress = os.Args[2]
 	}
 	if !strings.Contains(sigsciAgentAddress, "/") {
 		sigsciAgentNetwork = "tcp"
 	}
-	log.Printf("Using sigsci-agent address (pass address as program argument to change): %s:%s", sigsciAgentNetwork, sigsciAgentAddress)
 
 	// Existing handler, in this case a simple http.ServeMux,
 	// but could be any http.Handler in the application
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", helloworld)
+	handler := http.Handler(mux)
 
-	// Wrap the existing http.Handler with the SigSci module handler
-	wrapped, err := sigsci.NewModule(
-		// Existing handler to wrap
-		mux,
+	if len(sigsciAgentAddress) > 0 {
+		// Wrap the existing http.Handler with the SigSci module handler
+		wrapped, err := sigsci.NewModule(
+			// Existing handler to wrap
+			mux,
 
-		// Any additional module options:
-		sigsci.Socket(sigsciAgentNetwork, sigsciAgentAddress),
-		//sigsci.Timeout(100 * time.Millisecond),
-		//sigsci.AnomalySize(512 * 1024),
-		//sigsci.AnomalyDuration(1 * time.Second),
-		//sigsci.MaxContentLength(100000),
+			// Any additional module options:
+			sigsci.Socket(sigsciAgentNetwork, sigsciAgentAddress),
+			//sigsci.Timeout(100 * time.Millisecond),
+			//sigsci.AnomalySize(512 * 1024),
+			//sigsci.AnomalyDuration(1 * time.Second),
+			//sigsci.MaxContentLength(100000),
 
-		// Turn on debug logging for this example (do not use in production)
-		sigsci.Debug(true),
-	)
-	if err != nil {
-		log.Fatal(err)
+			// Turn on debug logging for this example (do not use in production)
+			sigsci.Debug(true),
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Signal Sciences agent RPC address: %s:%s", sigsciAgentNetwork, sigsciAgentAddress)
+
+		// Use the wrapped sigsci handler
+		handler = wrapped
 	}
 
-	// Listen and Serve as usual using the wrapped sigsci handler
+	// Listen and Serve as usual using the wrapped sigsci handler if enabled
 	s := &http.Server{
-		Handler: wrapped,
-		Addr:    "localhost:8000",
+		Handler: handler,
+		Addr:    listenerAddress,
 	}
 	log.Printf("Server URL: http://%s/", s.Addr)
 	log.Fatal(s.ListenAndServe())
