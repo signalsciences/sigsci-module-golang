@@ -5,7 +5,7 @@
 
 The Signal Sciences module in Golang allows for integrating your Golang
 application directly with the Signal Sciences agent at the source code
-level. It is written as an `http.Handler` wrapper. To
+level. It is written as a `http.Handler` wrapper. To
 integrate your application with the module, you will need to wrap your
 existing handler with the module handler.
 
@@ -14,7 +14,7 @@ existing handler with the module handler.
 
 ## Example Code Snippet
 ```go
-// Existing http.Handler
+// Example existing http.Handler
 mux := http.NewServeMux()
 mux.HandleFunc("/", helloworld)
 
@@ -44,21 +44,24 @@ log.Fatal(s.ListenAndServe())
 
 ## Examples
 
-The [examples](examples/) directory contains complete example code.
+The [examples/helloworld](examples/helloworld) directory contains complete example code.
 
 To run the simple [helloworld](examples/helloworld/main.go) example:
 ```shell
-# Run __without__ sigsci enabled
+# Syntax:
+#   go run ./examples/helloworld <listener-address:port> [<sigsci-agent-rpc-address>]
+#
+# Run WITHOUT sigsci enabled
 go run ./examples/helloworld localhost:8000
-# Run with sigsci-agent listening via a UNIX Domain socket file
+# Run WITH sigsci-agent listening via a UNIX Domain socket file
 go run ./examples/helloworld localhost:8000 /var/run/sigsci.sock
-# Run with sigsci-agent listening via a TCP address:port
+# Run WITH sigsci-agent listening via a TCP address:port
 go run ./examples/helloworld localhost:8000 localhost:9999
 ```
 
-This will run a HTTP listener on `localhost:8000`, which will send any
+The above will run a HTTP listener on `localhost:8000`, which will send any
 traffic to this listener to a running sigsci-agent for inspection (if
-configured).
+an agent address is configured).
 
 [doc-img]: https://godoc.org/github.com/signalsciences/sigsci-module-golang?status.svg
 [doc]: https://godoc.org/github.com/signalsciences/sigsci-module-golang
