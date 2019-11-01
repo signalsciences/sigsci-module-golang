@@ -24,20 +24,21 @@ const moduleVersion = "sigsci-module-golang " + version
 // data collection and sends it to the Signal Sciences Agent for
 // inspection.
 type Module struct {
-	handler          http.Handler
-	rpcNetwork       string
-	rpcAddress       string
-	debug            bool
-	timeout          time.Duration
-	anomalySize      int64
-	anomalyDuration  time.Duration
-	maxContentLength int64
-	moduleVersion    string
-	serverVersion    string
-	inspector        Inspector
-	inspInit         InspectorInitFunc
-	inspFini         InspectorFiniFunc
-	headerExtractor  func(*http.Request) (http.Header, error)
+	handler                   http.Handler
+	rpcNetwork                string
+	rpcAddress                string
+	debug                     bool
+	timeout                   time.Duration
+	anomalySize               int64
+	anomalyDuration           time.Duration
+	maxContentLength          int64
+	allowUnknownContentLength bool
+	moduleVersion             string
+	serverVersion             string
+	inspector                 Inspector
+	inspInit                  InspectorInitFunc
+	inspFini                  InspectorFiniFunc
+	headerExtractor           func(*http.Request) (http.Header, error)
 }
 
 // ModuleConfigOption is a functional config option for configuring the module
@@ -162,6 +163,21 @@ func AnomalyDuration(dur time.Duration) ModuleConfigOption {
 func MaxContentLength(size int64) ModuleConfigOption {
 	return func(m *Module) error {
 		m.maxContentLength = size
+		return nil
+	}
+}
+
+// AllowUnknownContentLength is a function argument to set the ability
+// to read the body when the content length is not specified.
+//
+// NOTE: This can be dangerous (fill RAM) if set when the max content
+//       length is not limited by the server itself. This is intended
+//       for use with gRPC where the max message receive length is limited.
+//       Do NOT enable this if there is no limit set on the request
+//       content length!
+func AllowUnknownContentLength(allow bool) ModuleConfigOption {
+	return func(m *Module) error {
+		m.allowUnknownContentLength = allow
 		return nil
 	}
 }
@@ -496,9 +512,14 @@ func shouldReadBody(req *http.Request, m *Module) bool {
 		return false
 	}
 
-	// skip reading if post is invalid or too long
-	if req.ContentLength <= 0 || req.ContentLength > m.maxContentLength {
-		return false
+	// A ContentLength of -1 is an unknown length (streamed) and is only
+	// allowed if explicitly configured. In this case the max content length
+	// check is bypassed.
+	if !(m.allowUnknownContentLength && req.ContentLength == -1) {
+		// skip reading if post is invalid or too long
+		if req.ContentLength <= 0 || req.ContentLength > m.maxContentLength {
+			return false
+		}
 	}
 
 	// only read certain types of content
@@ -525,6 +546,10 @@ func inspectableContentType(s string) bool {
 	case strings.HasPrefix(s, "text/xml") ||
 		strings.HasPrefix(s, "application/xml") ||
 		strings.Contains(s, "+xml"):
+		return true
+
+	// gRPC (protobuf)
+	case strings.HasPrefix(s, "application/grpc"):
 		return true
 	}
 
