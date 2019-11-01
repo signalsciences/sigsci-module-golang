@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Updated helloworld example to be more configurable allowing it to be used in other example documentation
+* Added the ability to support inspecting gRPC (protobuf) content
 
 ## 1.6.2 2019-08-25
 
