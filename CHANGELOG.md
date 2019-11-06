@@ -1,6 +1,6 @@
 # GoLang Module Release Notes
 
-## Unreleased
+## 1.6.4 2019-11-06
 
 * Updated helloworld example to be more configurable allowing it to be used in other example documentation
 * Added the ability to support inspecting gRPC (protobuf) content
