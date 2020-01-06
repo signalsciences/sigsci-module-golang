@@ -1,7 +1,8 @@
 # GoLang Module Release Notes
 
-## 1.6.4 2019-11-06
+## 1.6.5 2020-01-06
 
+* Updated the `http.ResponseWriter` wrapper to allow `CloseNotify()` calls to pass through
 
 ## 1.6.4 2019-11-06
 
