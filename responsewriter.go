@@ -85,6 +85,16 @@ func (w *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return nil, nil, fmt.Errorf("response writer (%T) does not implement http.Hijacker", w.base)
 }
 
+// CloseNotify wraps the underlying CloseNotify or returns a dummy channel if the CloseNotifier interface is not implemented
+func (w *responseRecorder) CloseNotify() <-chan bool {
+	if cn, ok := w.base.(http.CloseNotifier); ok {
+		return cn.CloseNotify()
+	}
+
+	// Return a dummy channel that will never get used
+	return make(<-chan bool)
+}
+
 // responseRecorderFlusher wraps a base http.ResponseWriter/http.Flusher allowing extraction of additional inspection data
 type responseRecorderFlusher struct {
 	*responseRecorder
