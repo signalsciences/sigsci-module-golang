@@ -1,5 +1,10 @@
 # GoLang Module Release Notes
 
+## 1.7.0 2020-3-11
+
+* Cleaned up configuration and added an `AltResponseCodes` option to configure
+  alternative (other than 406) response codes that can be used for blocking
+
 ## 1.6.5 2020-01-06
 
 * Updated the `http.ResponseWriter` wrapper to allow `CloseNotify()` calls to pass through
