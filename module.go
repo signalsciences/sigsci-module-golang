@@ -59,7 +59,7 @@ func NewModule(h http.Handler, options ...ModuleConfigOption) (*Module, error) {
 
 	// Call ModuleInit to initialize the module data, so that the agent is
 	// registered on module creation
-	now := time.Now().UTC()
+	now := time.Now()
 	in := RPCMsgIn{
 		ModuleVersion: m.config.ModuleIdentifier(),
 		ServerVersion: m.config.ServerIdentifier(),
@@ -84,7 +84,7 @@ func Version() string {
 
 // ServeHTTP satisfies the http.Handler interface
 func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	start := time.Now().UTC()
+	start := time.Now()
 	finiwg := sync.WaitGroup{}
 
 	// Use the inspector init/fini functions if available
@@ -309,7 +309,7 @@ func (m *Module) inspectorUpdateRequest(inspin RPCMsgIn2) error {
 // End-users of the golang module never need to use this
 // directly and it is only exposed for performance testing
 func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur time.Duration, module, server string) *RPCMsgIn {
-	now := time.Now().UTC()
+	now := time.Now()
 
 	// assemble a message to send to inspector
 	tlsProtocol := ""
