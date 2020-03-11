@@ -334,3 +334,10 @@ func ServerIdentifier(id string) ModuleConfigOption {
 		return nil
 	}
 }
+
+func FromModuleConfig(mcfg *ModuleConfig) ModuleConfigOption {
+	return func(c *ModuleConfig) error {
+		*c = *mcfg
+		return nil
+	}
+}
