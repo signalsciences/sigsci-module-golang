@@ -216,32 +216,48 @@ func TestInspectableContentType(t *testing.T) {
 func TestModule(t *testing.T) {
 	cases := []struct {
 		req  []byte // Raw HTTP request
-		resp int32  // Inspection response (200 or 406)
+		resp int32  // Inspection response
 		tags string // Any tags in the PreRequest call
 	}{
 		{genTestRequest("GET", "http://example.com/", "", ""), 200, ""},
 		{genTestRequest("GET", "http://example.com/", "", ""), 406, "XSS"},
+		{genTestRequest("GET", "http://example.com/", "", ""), 403, "XSS"},
+		{genTestRequest("GET", "http://example.com/", "", ""), 500, "XSS"},
 		{genTestRequest("GET", "http://example.com/", "", ""), 200, ""},
 		{genTestRequest("OPTIONS", "http://example.com/", "", ""), 200, ""},
 		{genTestRequest("OPTIONS", "http://example.com/", "", ""), 406, "XSS"},
+		{genTestRequest("OPTIONS", "http://example.com/", "", ""), 403, "XSS"},
+		{genTestRequest("OPTIONS", "http://example.com/", "", ""), 500, "XSS"},
 		{genTestRequest("OPTIONS", "http://example.com/", "", ""), 200, ""},
 		{genTestRequest("CONNECT", "http://example.com/", "", ""), 200, ""},
 		{genTestRequest("CONNECT", "http://example.com/", "", ""), 406, "XSS"},
+		{genTestRequest("CONNECT", "http://example.com/", "", ""), 403, "XSS"},
+		{genTestRequest("CONNECT", "http://example.com/", "", ""), 500, "XSS"},
 		{genTestRequest("CONNECT", "http://example.com/", "", ""), 200, ""},
 		{genTestRequest("POST", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 200, ""},
 		{genTestRequest("POST", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 406, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 403, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 500, "XSS"},
 		{genTestRequest("POST", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 200, ""},
 		{genTestRequest("PUT", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 200, ""},
 		{genTestRequest("PUT", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 406, "XSS"},
+		{genTestRequest("PUT", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 403, "XSS"},
+		{genTestRequest("PUT", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 500, "XSS"},
 		{genTestRequest("PUT", "http://example.com/", "application/x-www-form-urlencoded", "a=1"), 200, ""},
 		{genTestRequest("POST", "http://example.com/", "text/xml;charset=UTF-8", `<a>1</a>`), 200, ""},
 		{genTestRequest("POST", "http://example.com/", "text/xml;charset=UTF-8", `<a>1</a>`), 406, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "text/xml;charset=UTF-8", `<a>1</a>`), 403, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "text/xml;charset=UTF-8", `<a>1</a>`), 500, "XSS"},
 		{genTestRequest("POST", "http://example.com/", "text/xml;charset=UTF-8", `<a>1</a>`), 200, ""},
 		{genTestRequest("POST", "http://example.com/", "application/xml; charset=iso-2022-kr", `<a>1</a>`), 200, ""},
 		{genTestRequest("POST", "http://example.com/", "application/xml; charset=iso-2022-kr", `<a>1</a>`), 406, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "application/xml; charset=iso-2022-kr", `<a>1</a>`), 403, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "application/xml; charset=iso-2022-kr", `<a>1</a>`), 500, "XSS"},
 		{genTestRequest("POST", "http://example.com/", "application/xml; charset=iso-2022-kr", `<a>1</a>`), 200, ""},
 		{genTestRequest("POST", "http://example.com/", "application/rss+xml", `<a>1</a>`), 200, ""},
 		{genTestRequest("POST", "http://example.com/", "application/rss+xml", `<a>1</a>`), 406, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "application/rss+xml", `<a>1</a>`), 403, "XSS"},
+		{genTestRequest("POST", "http://example.com/", "application/rss+xml", `<a>1</a>`), 500, "XSS"},
 		{genTestRequest("POST", "http://example.com/", "application/rss+xml", `<a>1</a>`), 200, ""},
 	}
 
@@ -253,6 +269,7 @@ func TestModule(t *testing.T) {
 				http.Error(w, fmt.Sprintf("%d %s\n", status, http.StatusText(status)), status)
 			}),
 			Timeout(500*time.Millisecond),
+			AltResponseCodes(403, 500),
 			Debug(true),
 			CustomInspector(newTestInspector(tt.resp, tt.tags), nil, nil),
 		)
@@ -345,7 +362,7 @@ func requestParseRaw(raddr string, raw []byte) (*http.Request, error) {
 // testInspector is a custom inspector that calls the simulator
 // harness within the golang module
 type testInspector struct {
-	resp int32  // Either 200 or 406
+	resp int32  // Response code (200, 406, etc.)
 	tags string // EX: "XSS" (csv)
 }
 
