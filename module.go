@@ -121,12 +121,12 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	wafresponse := out.WAFResponse
 	switch {
-	case m.config.IsBlockCode(int(wafresponse)):
-		status := int(wafresponse)
-		http.Error(rw, fmt.Sprintf("%d %s\n", status, http.StatusText(status)), status)
 	case m.config.IsAllowCode(int(wafresponse)):
 		// continue with normal request
 		m.handler.ServeHTTP(rw, req)
+	case m.config.IsBlockCode(int(wafresponse)):
+		status := int(wafresponse)
+		http.Error(rw, fmt.Sprintf("%d %s\n", status, http.StatusText(status)), status)
 	default:
 		log.Printf("ERROR: Received invalid response code from inspector (failing open): %d", wafresponse)
 		// continue with normal request
