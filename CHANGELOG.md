@@ -1,5 +1,10 @@
 # GoLang Module Release Notes
 
+## Unreleased
+
+* Updated the response recorder to implement the io.ReaderFrom interface
+* Fixed some linter issues with missing comments on exported functions
+
 ## 1.7.0 2020-3-11
 
 * Cleaned up configuration and added an `AltResponseCodes` option to configure
