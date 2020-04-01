@@ -3,6 +3,7 @@ package sigsci
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 )
@@ -75,6 +76,13 @@ func (w *responseRecorder) Write(b []byte) (int, error) {
 	return w.base.Write(b)
 }
 
+func (w *responseRecorder) ReadFrom(r io.Reader) (n int64, err error) {
+	if rf, ok := w.base.(io.ReaderFrom); ok {
+		return rf.ReadFrom(r)
+	}
+	return io.Copy(w.base, r)
+}
+
 // Hijack hijacks the connection from the HTTP handler so that it can be used directly (websockets, etc.)
 // NOTE: This will fail if the wrapped http.responseRecorder is not a http.Hijacker.
 func (w *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
@@ -106,3 +114,8 @@ func (w *responseRecorderFlusher) Flush() {
 		f.Flush()
 	}
 }
+
+// ensure our writers satisfy the intended interfaces
+var _ http.Hijacker = (*responseRecorder)(nil)
+var _ io.ReaderFrom = (*responseRecorder)(nil)
+var _ http.Flusher = (*responseRecorderFlusher)(nil)
