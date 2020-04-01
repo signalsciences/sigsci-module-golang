@@ -111,7 +111,7 @@ func (c *ModuleConfig) AllowUnknownContentLength() bool {
 	return c.allowUnknownContentLength
 }
 
-//  returns the configuration value
+// AltResponseCodes returns the configuration value
 func (c *ModuleConfig) AltResponseCodes() []int {
 	if len(c.altResponseCodes) == 0 {
 		return nil
@@ -143,14 +143,17 @@ func (c *ModuleConfig) HeaderExtractor() func(r *http.Request) (http.Header, err
 	return c.headerExtractor
 }
 
+// Inspector returns the inspector
 func (c *ModuleConfig) Inspector() Inspector {
 	return c.inspector
 }
 
+// InspectorInit returns the inspector init function
 func (c *ModuleConfig) InspectorInit() InspectorInitFunc {
 	return c.inspInit
 }
 
+// InspectorFini returns the inspector fini function
 func (c *ModuleConfig) InspectorFini() InspectorFiniFunc {
 	return c.inspFini
 }
@@ -165,7 +168,7 @@ func (c *ModuleConfig) ModuleIdentifier() string {
 	return c.moduleIdentifier
 }
 
-//  returns the configuration value
+// RPCAddress returns the configuration value
 func (c *ModuleConfig) RPCAddress() string {
 	return c.rpcAddress
 }
@@ -335,6 +338,7 @@ func ServerIdentifier(id string) ModuleConfigOption {
 	}
 }
 
+// FromModuleConfig allow cloning the config
 func FromModuleConfig(mcfg *ModuleConfig) ModuleConfigOption {
 	return func(c *ModuleConfig) error {
 		*c = *mcfg
