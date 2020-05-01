@@ -21,6 +21,7 @@ docker run --user $(id -u ${USER}):$(id -g ${USER}) -v ${PWD}/goroot:/go/ --rm g
 # run module tests
 ./scripts/test.sh
 
+
 BASE=$PWD
 ## setup our package properties by distro
 PKG_NAME="sigsci-module-golang"
