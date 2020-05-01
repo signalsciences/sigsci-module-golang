@@ -22,6 +22,7 @@ jobs:
       id: go
     - name: Run make script
       run: |
+        $(aws ecr get-login --registry-ids 803688608479 --region us-west-2 --no-include-email)
         ./make.sh
       env:
         PROD_ID: ${{ secrets.SIGSCI_PROD_CANONICAL_ID }}
