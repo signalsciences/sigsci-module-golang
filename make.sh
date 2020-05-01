@@ -12,8 +12,16 @@ set -ex
 # build / lint agent in a container
 find . -name "goroot" -type d | xargs rm -rf
 mkdir goroot
+chmod -R 755 goroot
+
+echo "***********************************"
+whoami
+ls -lah goroot
+echo "***********************************"
+
 docker build -f Dockerfile.git -t golang-git:1.10.6-alpine3.8 .
-docker run -v ${PWD}/goroot:/go/ --rm golang-git:1.10.6-alpine3.8 /bin/sh -c 'go get github.com/signalsciences/tlstext && go get github.com/tinylib/msgp && go get github.com/alecthomas/gometalinter'
+docker run --user 1015:1015 -v ${PWD}/goroot:/go/ --rm golang-git:1.10.6-alpine3.8 /bin/sh -c 'go get github.com/signalsciences/tlstext && go get github.com/tinylib/msgp && go get github.com/alecthomas/gometalinter'
+chown -R `whoami` goroot
 ./scripts/build-docker.sh
 
 # run module tests
