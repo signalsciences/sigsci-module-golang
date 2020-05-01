@@ -20,7 +20,7 @@ ls -lah goroot
 echo "***********************************"
 
 docker build -f Dockerfile.git -t golang-git:1.10.6-alpine3.8 .
-docker run --user 1015:1015 -v ${PWD}/goroot:/go/ --rm golang-git:1.10.6-alpine3.8 /bin/sh -c 'go get github.com/signalsciences/tlstext && go get github.com/tinylib/msgp && go get github.com/alecthomas/gometalinter'
+docker run -v ${PWD}/goroot:/go/ --rm golang-git:1.10.6-alpine3.8 /bin/sh -c 'go get github.com/signalsciences/tlstext && go get github.com/tinylib/msgp && go get github.com/alecthomas/gometalinter'
 chown -R `whoami` goroot
 ./scripts/build-docker.sh
 
