@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 DOCKERCOMPOSE="docker-compose"
 
@@ -28,7 +28,6 @@ cleanup() {
 trap cleanup 0 1 2 3 6
 exit 1
 
-set -x
 
 # attempt to clean up any leftover junk
 $DOCKERCOMPOSE down
