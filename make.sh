@@ -42,3 +42,36 @@ aws s3 cp \
         --content-type="text/markdown; charset=UTF-8" \
         CHANGELOG.md ${DST_BUCKET}/CHANGELOG.md
 
+
+
+# Main package
+aws s3api put-object \
+  --bucket "${DEST_BUCKET}" \
+  --cache-control="max-age=300" \
+  --content-type="application/octet-stream" \
+  --body "./artifacts/${PKG_NAME}.tar.gz" \
+  --key "${DST_BUCKET}/${PKG_NAME}_${VERSION}.tar.gz" \
+  --grant-full-control id="${SIGSCI_PROD_CANONICAL_ID}"
+
+# Metadata files
+aws s3api put-object \
+  --bucket "${DEST_BUCKET}" \
+  --cache-control="max-age=300" \
+  --content-type="text/plain; charset=UTF-8" \
+  --body "VERSION" \
+  --key "${DST_BUCKET}/VERSION" \
+  --grant-full-control id="${SIGSCI_PROD_CANONICAL_ID}"
+
+aws s3api put-object \
+  --bucket "${DEST_BUCKET}" \
+  --cache-control="max-age=300" \
+  --content-type="text/plain; charset=UTF-8" \
+  --body "CHANGELOG.md" \
+  --key "${DST_BUCKET}/CHANGELOG.md" \
+  --grant-full-control id="${SIGSCI_PROD_CANONICAL_ID}"
+
+
+
+
+
+
