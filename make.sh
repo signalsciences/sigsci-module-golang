@@ -33,7 +33,7 @@ aws s3api put-object \
   --content-type="application/octet-stream" \
   --body "./artifacts/${PKG_NAME}.tar.gz" \
   --key "${DEST_KEY}/${PKG_NAME}_${VERSION}.tar.gz" \
-  --grant-full-control id="${SIGSCI_PROD_CANONICAL_ID}"
+  --grant-full-control id="${PROD_ID}"
 
 # Metadata files
 aws s3api put-object \
@@ -42,7 +42,7 @@ aws s3api put-object \
   --content-type="text/plain; charset=UTF-8" \
   --body "VERSION" \
   --key "${DEST_KEY}/VERSION" \
-  --grant-full-control id="${SIGSCI_PROD_CANONICAL_ID}"
+  --grant-full-control id="${PROD_ID}"
 
 aws s3api put-object \
   --bucket "${DEST_BUCKET}" \
@@ -50,7 +50,7 @@ aws s3api put-object \
   --content-type="text/plain; charset=UTF-8" \
   --body "CHANGELOG.md" \
   --key "${DEST_KEY}/CHANGELOG.md" \
-  --grant-full-control id="${SIGSCI_PROD_CANONICAL_ID}"
+  --grant-full-control id="${PROD_ID}"
 
 
 
