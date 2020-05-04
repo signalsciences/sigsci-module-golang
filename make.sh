@@ -18,7 +18,8 @@ docker run --user $(id -u ${USER}):$(id -g ${USER}) -v ${PWD}/goroot:/go/ --rm g
 BASE=$PWD
 ## setup our package properties by distro
 PKG_NAME="sigsci-module-golang"
-DEST_BUCKET="s3://package-build-artifacts/${PKG_NAME}/${GITHUB_RUN_NUMBER}"
+DEST_BUCKET="package-build-artifacts"
+DEST_KEY="${PKG_NAME}/${GITHUB_RUN_NUMBER}"
 VERSION=$(cat ./VERSION)
 
 
@@ -31,7 +32,7 @@ aws s3api put-object \
   --cache-control="max-age=300" \
   --content-type="application/octet-stream" \
   --body "./artifacts/${PKG_NAME}.tar.gz" \
-  --key "${DEST_BUCKET}/${PKG_NAME}_${VERSION}.tar.gz" \
+  --key "${DEST_KEY}/${PKG_NAME}_${VERSION}.tar.gz" \
   --grant-full-control id="${SIGSCI_PROD_CANONICAL_ID}"
 
 # Metadata files
@@ -40,7 +41,7 @@ aws s3api put-object \
   --cache-control="max-age=300" \
   --content-type="text/plain; charset=UTF-8" \
   --body "VERSION" \
-  --key "${DEST_BUCKET}/VERSION" \
+  --key "${DEST_KEY}/VERSION" \
   --grant-full-control id="${SIGSCI_PROD_CANONICAL_ID}"
 
 aws s3api put-object \
@@ -48,7 +49,7 @@ aws s3api put-object \
   --cache-control="max-age=300" \
   --content-type="text/plain; charset=UTF-8" \
   --body "CHANGELOG.md" \
-  --key "${DEST_BUCKET}/CHANGELOG.md" \
+  --key "${DEST_KEY}/CHANGELOG.md" \
   --grant-full-control id="${SIGSCI_PROD_CANONICAL_ID}"
 
 
