@@ -49,10 +49,10 @@ services:
       - agent
       - punchingbag
     environment:
-      - DISABLE_HTTP_OPTIONS=1
-      - DISABLE_NOCOOKIE=1
+      #- DISABLE_HTTP_OPTIONS=1
+      #- DISABLE_NOCOOKIE=1
       - MTEST_BASEURL=web:8085
       - MTEST_AGENT=agent:12345
-    command: [ "/bin/mtest", "-addr1=web:8085", "-test.v" ]
+    command: [ "/bin/wait-for", "web:8085", "--", "/bin/mtest" ]
 
 
