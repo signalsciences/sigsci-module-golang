@@ -1,2 +1,4 @@
 FROM golang:1.10.6-alpine3.8
 RUN apk --update add git
+RUN mkdir /.cache
+RUN chmod a+rw /.cache
