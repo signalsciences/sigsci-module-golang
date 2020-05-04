@@ -26,8 +26,6 @@ cleanup() {
   sleep 3
 }
 trap cleanup 0 1 2 3 6
-exit 1
-
 
 # attempt to clean up any leftover junk
 $DOCKERCOMPOSE down
