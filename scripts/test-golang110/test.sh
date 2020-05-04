@@ -16,14 +16,7 @@ cleanup() {
   $DOCKERCOMPOSE down
 
   # show output of module testing
-  cat agent.log
-  sleep 3
-  cat web.log
-  sleep 3
-  cat punchingbag.log
-  sleep 3
   cat mtest.log
-  sleep 3
 }
 trap cleanup 0 1 2 3 6
 
