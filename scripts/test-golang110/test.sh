@@ -25,7 +25,9 @@ set -x
 # attempt to clean up any leftover junk
 $DOCKERCOMPOSE down
 
+echo "************************** 1"
 $DOCKERCOMPOSE pull --ignore-pull-failures
+echo "************************** 2"
 
 # start everything, run tests
 #
@@ -41,5 +43,8 @@ if [ -d "goroot" ]; then
     rm -rf goroot
 fi
 docker run -v ${PWD}/goroot:/go/ --rm golang:1.10.6-alpine3.8 /bin/sh -c 'apk --update add git && go get github.com/signalsciences/tlstext && go get github.com/tinylib/msgp && go get github.com/alecthomas/gometalinter'
+echo "************************** 3"
+
 $DOCKERCOMPOSE up --no-color --build  --abort-on-container-exit --exit-code-from mtest > /dev/null
+echo "************************** 4"
 

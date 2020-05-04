@@ -21,8 +21,8 @@ docker run --user $(id -u ${USER}):$(id -g ${USER}) -v ${PWD}/goroot:/go/ --rm g
 # run module tests
 
 docker pull 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/module-testing
-docker pull 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/sigsci-agent
 docker tag 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/module-testing local-dev/module-testing
+docker pull 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/sigsci-agent
 docker tag 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/sigsci-agent  local-dev/sigsci-agent
 ./scripts/test.sh
 
