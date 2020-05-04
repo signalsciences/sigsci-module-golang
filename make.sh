@@ -24,25 +24,6 @@ VERSION=$(cat ./VERSION)
 
 cd ${BASE}
 echo "DONE"
-aws s3 cp \
-        --no-follow-symlinks \
-        --cache-control="max-age=300" \
-        ./artifacts/${PKG_NAME}.tar.gz ${DST_BUCKET}/${PKG_NAME}_${VERSION}.tar.gz
-
-aws s3 cp \
-        --no-follow-symlinks \
-        --cache-control="max-age=300" \
-        --content-type="text/plain; charset=UTF-8" \
-        VERSION ${DST_BUCKET}/VERSION
-
-aws s3 cp \
-        --no-follow-symlinks \
-        --cache-control="max-age=300" \
-        --content-language="en-US" \
-        --content-type="text/markdown; charset=UTF-8" \
-        CHANGELOG.md ${DST_BUCKET}/CHANGELOG.md
-
-
 
 # Main package
 aws s3api put-object \
