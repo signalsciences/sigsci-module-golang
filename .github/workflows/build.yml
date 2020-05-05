@@ -1,7 +1,7 @@
 name: sigsci-module-golang
 on:
   push:
-    branches: [ BuildOnGithubActions ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -15,13 +15,9 @@ jobs:
         aws-region: us-west-2
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
-    - name: Set up Go 1.12
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.12
-      id: go
     - name: Run make script
       run: |
+        $(aws ecr get-login --registry-ids 803688608479 --region us-west-2 --no-include-email)
         ./make.sh
       env:
         PROD_ID: ${{ secrets.SIGSCI_PROD_CANONICAL_ID }}

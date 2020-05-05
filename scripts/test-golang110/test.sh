@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 DOCKERCOMPOSE="docker-compose"
 
@@ -20,8 +20,6 @@ cleanup() {
 }
 trap cleanup 0 1 2 3 6
 
-set -x
-
 # attempt to clean up any leftover junk
 $DOCKERCOMPOSE down
 
@@ -29,7 +27,7 @@ $DOCKERCOMPOSE pull --ignore-pull-failures
 
 # start everything, run tests
 #
-# --no-color --> safe for jenkins
+# --no-color --> safe for ci
 # --build    --> alway build test server/module container
 # --abort-on-container-exit --> without this, the other servers keep the process running
 # --exit-code-from mtest -->  make exit code be the result of module test
@@ -41,5 +39,6 @@ if [ -d "goroot" ]; then
     rm -rf goroot
 fi
 docker run -v ${PWD}/goroot:/go/ --rm golang:1.10.6-alpine3.8 /bin/sh -c 'apk --update add git && go get github.com/signalsciences/tlstext && go get github.com/tinylib/msgp && go get github.com/alecthomas/gometalinter'
+
 $DOCKERCOMPOSE up --no-color --build  --abort-on-container-exit --exit-code-from mtest > /dev/null
 

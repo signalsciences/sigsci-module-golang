@@ -21,7 +21,7 @@ services:
 
   # agent
   agent:
-    image: local-dev/sigsci-agent:latest
+    image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/sigsci-agent:latest
     command: [ "-debug-log-web-inputs", "2", "-rpc-address", "9090", "-debug-rpc-test-harness", "-debug-standalone", "3" ]
     expose:
       - "9090"
@@ -31,7 +31,7 @@ services:
 
   # punching bag
   punchingbag:
-    image: local-dev/module-testing:latest
+    image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/module-testing:latest
     networks:
       - mtest
     expose:
@@ -41,7 +41,7 @@ services:
   # mtest
   #
   mtest:
-    image: local-dev/module-testing:latest
+    image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/module-testing:latest
     networks:
       - mtest
     depends_on:

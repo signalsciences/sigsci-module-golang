@@ -29,7 +29,7 @@ $DOCKERCOMPOSE pull --ignore-pull-failures
 
 # start everything, run tests
 #
-# --no-color --> safe for jenkins
+# --no-color --> safe for ci
 # --build    --> alway build test server/module container
 # --abort-on-container-exit --> without this, the other servers keep the process running
 # --exit-code-from mtest -->  make exit code be the result of module test
