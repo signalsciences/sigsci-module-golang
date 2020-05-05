@@ -1,7 +1,7 @@
 name: sigsci-module-golang
 on:
   push:
-    branches: [ BuildOnGithubActions ]
+    branches: [ master ]
 
 jobs:
   build:
