@@ -1,5 +1,9 @@
 # GoLang Module Release Notes
 
+## Unreleased
+
+* Deprecated the `AltResponseCodes` concept in favor of using all code 300 and higher as "blocking"
+
 ## 1.7.1 2020-04-06
 
 * Updated the response recorder to implement the io.ReaderFrom interface
