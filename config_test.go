@@ -72,6 +72,9 @@ func TestDefaultModuleConfig(t *testing.T) {
 			t.Errorf("Unexpected IsBlockCode(%d): %v", code, c.IsBlockCode(code))
 		}
 	}
+	if c.IsBlockCode(600) {
+		t.Errorf("Unexpected IsBlockCode(600): %v", c.IsBlockCode(600))
+	}
 	if c.IsBlockCode(200) {
 		t.Errorf("Unexpected IsBlockCode(200): %v", c.IsBlockCode(200))
 	}
@@ -153,6 +156,9 @@ func TestConfiguredModuleConfig(t *testing.T) {
 		if !c.IsBlockCode(code) {
 			t.Errorf("Unexpected IsBlockCode(%d): %v", code, c.IsBlockCode(code))
 		}
+	}
+	if c.IsBlockCode(600) {
+		t.Errorf("Unexpected IsBlockCode(600): %v", c.IsBlockCode(600))
 	}
 	if c.IsBlockCode(200) {
 		t.Errorf("Unexpected IsBlockCode(200): %v", c.IsBlockCode(200))
@@ -242,6 +248,9 @@ func TestFromModuleConfig(t *testing.T) {
 		if !c.IsBlockCode(code) {
 			t.Errorf("Unexpected IsBlockCode(%d): %v", code, c.IsBlockCode(code))
 		}
+	}
+	if c.IsBlockCode(600) {
+		t.Errorf("Unexpected IsBlockCode(600): %v", c.IsBlockCode(600))
 	}
 	if c.IsBlockCode(200) {
 		t.Errorf("Unexpected IsBlockCode(200): %v", c.IsBlockCode(200))

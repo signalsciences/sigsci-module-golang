@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Deprecated the `AltResponseCodes` concept in favor of using all code 300 and higher as "blocking"
+* Deprecated the `AltResponseCodes` concept in favor of using all codes 300-599 as "blocking"
 
 ## 1.7.1 2020-04-06
 

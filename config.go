@@ -96,7 +96,7 @@ func (c *ModuleConfig) SetOptions(options ...ModuleConfigOption) error {
 
 // IsBlockCode returns true if the code is a configured block code
 func (c *ModuleConfig) IsBlockCode(code int) bool {
-	return code >= 300
+	return code >= 300 && code <= 599
 }
 
 // IsAllowCode returns true if the code is an allow code
@@ -113,7 +113,7 @@ func (c *ModuleConfig) AllowUnknownContentLength() bool {
 //
 // Deprecated: The `AltResponseCodes` concept has
 // been deprecated in favor of treating all response
-// codes 300 and greater as blocking codes. Due to
+// codes 300-599 as blocking codes. Due to
 // this, this method will always return nil. It is left
 // here to avoid breakage, but will eventually be removed.
 func (c *ModuleConfig) AltResponseCodes() []int {
@@ -216,7 +216,7 @@ func AllowUnknownContentLength(allow bool) ModuleConfigOption {
 //
 // Deprecated: The `AltResponseCodes` concept has
 // been deprecated in favor of treating all response
-// codes 300 and greater as blocking codes. Due to
+// codes 300-599 as blocking codes. Due to
 // this, this method will always return nil. It is left
 // here to avoid breakage, but will eventually be removed.
 func AltResponseCodes(codes ...int) ModuleConfigOption {
