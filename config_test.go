@@ -59,17 +59,21 @@ func TestDefaultModuleConfig(t *testing.T) {
 	if c.Timeout() != DefaultTimeout {
 		t.Errorf("Unexpected Timeout: %v", c.Timeout())
 	}
-	if c.IsAllowCode(406) {
-		t.Errorf("Unexpected IsAllowCode(406): %v", c.IsAllowCode(406))
+	for code := 300; code < 600; code++ {
+		if c.IsAllowCode(code) {
+			t.Errorf("Unexpected IsAllowCode(%d): %v", code, c.IsAllowCode(code))
+		}
 	}
 	if !c.IsAllowCode(200) {
 		t.Errorf("Unexpected IsAllowCode(200): %v", c.IsAllowCode(200))
 	}
-	if !c.IsBlockCode(406) {
-		t.Errorf("Unexpected IsBlockCode(406): %v", c.IsBlockCode(406))
+	for code := 300; code < 600; code++ {
+		if !c.IsBlockCode(code) {
+			t.Errorf("Unexpected IsBlockCode(%d): %v", code, c.IsBlockCode(code))
+		}
 	}
-	if c.IsBlockCode(403) {
-		t.Errorf("Unexpected IsBlockCode(403): %v", c.IsBlockCode(403))
+	if c.IsBlockCode(600) {
+		t.Errorf("Unexpected IsBlockCode(600): %v", c.IsBlockCode(600))
 	}
 	if c.IsBlockCode(200) {
 		t.Errorf("Unexpected IsBlockCode(200): %v", c.IsBlockCode(200))
@@ -95,9 +99,8 @@ func TestConfiguredModuleConfig(t *testing.T) {
 	if c.AllowUnknownContentLength() != true {
 		t.Errorf("Unexpected AllowUnknownContentLength: %v", c.AllowUnknownContentLength())
 	}
-	altResponseCodes := c.AltResponseCodes()
-	if len(altResponseCodes) != 1 || altResponseCodes[0] != 403 {
-		t.Errorf("Unexpected AltResponseCodes: %v", altResponseCodes)
+	if c.AltResponseCodes() != nil {
+		t.Errorf("Unexpected AltResponseCodes from deprecated option (should be nil): %v", c.AltResponseCodes())
 	}
 	if c.AnomalyDuration() != 10*time.Second {
 		t.Errorf("Unexpected AnomalyDuration: %v", c.AnomalyDuration())
@@ -141,17 +144,21 @@ func TestConfiguredModuleConfig(t *testing.T) {
 	if c.Timeout() != 10*time.Millisecond {
 		t.Errorf("Unexpected Timeout: %v", c.Timeout())
 	}
-	if c.IsAllowCode(406) {
-		t.Errorf("Unexpected IsAllowCode(406): %v", c.IsAllowCode(406))
+	for code := 300; code < 600; code++ {
+		if c.IsAllowCode(code) {
+			t.Errorf("Unexpected IsAllowCode(%d): %v", code, c.IsAllowCode(code))
+		}
 	}
 	if !c.IsAllowCode(200) {
 		t.Errorf("Unexpected IsAllowCode(200): %v", c.IsAllowCode(200))
 	}
-	if !c.IsBlockCode(406) {
-		t.Errorf("Unexpected IsBlockCode(406): %v", c.IsBlockCode(406))
+	for code := 300; code < 600; code++ {
+		if !c.IsBlockCode(code) {
+			t.Errorf("Unexpected IsBlockCode(%d): %v", code, c.IsBlockCode(code))
+		}
 	}
-	if !c.IsBlockCode(403) {
-		t.Errorf("Unexpected IsBlockCode(403): %v", c.IsBlockCode(403))
+	if c.IsBlockCode(600) {
+		t.Errorf("Unexpected IsBlockCode(600): %v", c.IsBlockCode(600))
 	}
 	if c.IsBlockCode(200) {
 		t.Errorf("Unexpected IsBlockCode(200): %v", c.IsBlockCode(200))
@@ -184,9 +191,8 @@ func TestFromModuleConfig(t *testing.T) {
 	if c.AllowUnknownContentLength() != true {
 		t.Errorf("Unexpected AllowUnknownContentLength: %v", c.AllowUnknownContentLength())
 	}
-	altResponseCodes := c.AltResponseCodes()
-	if len(altResponseCodes) != 1 || altResponseCodes[0] != 403 {
-		t.Errorf("Unexpected AltResponseCodes: %v", altResponseCodes)
+	if c.AltResponseCodes() != nil {
+		t.Errorf("Unexpected AltResponseCodes from deprecated option (should be nil): %v", c.AltResponseCodes())
 	}
 	if c.AnomalyDuration() != 10*time.Second {
 		t.Errorf("Unexpected AnomalyDuration: %v", c.AnomalyDuration())
@@ -230,17 +236,21 @@ func TestFromModuleConfig(t *testing.T) {
 	if c.Timeout() != 10*time.Millisecond {
 		t.Errorf("Unexpected Timeout: %v", c.Timeout())
 	}
-	if c.IsAllowCode(406) {
-		t.Errorf("Unexpected IsAllowCode(406): %v", c.IsAllowCode(406))
+	for code := 300; code < 600; code++ {
+		if c.IsAllowCode(code) {
+			t.Errorf("Unexpected IsAllowCode(%d): %v", code, c.IsAllowCode(code))
+		}
 	}
 	if !c.IsAllowCode(200) {
 		t.Errorf("Unexpected IsAllowCode(200): %v", c.IsAllowCode(200))
 	}
-	if !c.IsBlockCode(406) {
-		t.Errorf("Unexpected IsBlockCode(406): %v", c.IsBlockCode(406))
+	for code := 300; code < 600; code++ {
+		if !c.IsBlockCode(code) {
+			t.Errorf("Unexpected IsBlockCode(%d): %v", code, c.IsBlockCode(code))
+		}
 	}
-	if !c.IsBlockCode(403) {
-		t.Errorf("Unexpected IsBlockCode(403): %v", c.IsBlockCode(403))
+	if c.IsBlockCode(600) {
+		t.Errorf("Unexpected IsBlockCode(600): %v", c.IsBlockCode(600))
 	}
 	if c.IsBlockCode(200) {
 		t.Errorf("Unexpected IsBlockCode(200): %v", c.IsBlockCode(200))

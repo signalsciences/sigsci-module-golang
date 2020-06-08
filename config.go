@@ -41,7 +41,6 @@ type HeaderExtractorFunc func(*http.Request) (http.Header, error)
 // ModuleConfig is a configuration object for a Module
 type ModuleConfig struct {
 	allowUnknownContentLength bool
-	altResponseCodes          map[int]bool
 	anomalyDuration           time.Duration
 	anomalySize               int64
 	debug                     bool
@@ -61,7 +60,6 @@ type ModuleConfig struct {
 func NewModuleConfig(options ...ModuleConfigOption) (*ModuleConfig, error) {
 	c := &ModuleConfig{
 		allowUnknownContentLength: DefaultAllowUnknownContentLength,
-		altResponseCodes:          nil,
 		anomalyDuration:           DefaultAnomalyDuration,
 		anomalySize:               DefaultAnomalySize,
 		debug:                     DefaultDebug,
@@ -85,6 +83,9 @@ func NewModuleConfig(options ...ModuleConfigOption) (*ModuleConfig, error) {
 // SetOptions sets options specified as functional arguments
 func (c *ModuleConfig) SetOptions(options ...ModuleConfigOption) error {
 	for _, opt := range options {
+		if opt == nil {
+			continue
+		}
 		err := opt(c)
 		if err != nil {
 			return err
@@ -95,10 +96,7 @@ func (c *ModuleConfig) SetOptions(options ...ModuleConfigOption) error {
 
 // IsBlockCode returns true if the code is a configured block code
 func (c *ModuleConfig) IsBlockCode(code int) bool {
-	if code == 406 {
-		return true
-	}
-	return c.altResponseCodes[code]
+	return code >= 300 && code <= 599
 }
 
 // IsAllowCode returns true if the code is an allow code
@@ -112,15 +110,14 @@ func (c *ModuleConfig) AllowUnknownContentLength() bool {
 }
 
 // AltResponseCodes returns the configuration value
+//
+// Deprecated: The `AltResponseCodes` concept has
+// been deprecated in favor of treating all response
+// codes 300-599 as blocking codes. Due to
+// this, this method will always return nil. It is left
+// here to avoid breakage, but will eventually be removed.
 func (c *ModuleConfig) AltResponseCodes() []int {
-	if len(c.altResponseCodes) == 0 {
-		return nil
-	}
-	codes := make([]int, 0, len(c.altResponseCodes))
-	for k := range c.altResponseCodes {
-		codes = append(codes, k)
-	}
-	return codes
+	return nil
 }
 
 // AnomalyDuration returns the configuration value
@@ -216,14 +213,14 @@ func AllowUnknownContentLength(allow bool) ModuleConfigOption {
 
 // AltResponseCodes is a function argument to set the alternative
 // response codes from the agent that are considered "blocking"
+//
+// Deprecated: The `AltResponseCodes` concept has
+// been deprecated in favor of treating all response
+// codes 300-599 as blocking codes. Due to
+// this, this method will always return nil. It is left
+// here to avoid breakage, but will eventually be removed.
 func AltResponseCodes(codes ...int) ModuleConfigOption {
-	return func(c *ModuleConfig) error {
-		c.altResponseCodes = make(map[int]bool)
-		for _, code := range codes {
-			c.altResponseCodes[code] = true
-		}
-		return nil
-	}
+	return nil
 }
 
 // AnomalyDuration is a function argument to indicate when to send data
