@@ -122,14 +122,25 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	wafresponse := out.WAFResponse
 	switch {
 	case m.config.IsAllowCode(int(wafresponse)):
-		// continue with normal request
+		// Continue with normal request
 		m.handler.ServeHTTP(rw, req)
 	case m.config.IsBlockCode(int(wafresponse)):
 		status := int(wafresponse)
+
+		// Only redirect if it is a redirect status (3xx) AND there is a redirect URL
+		if status >= 300 && status <= 399 {
+			redirect := req.Header.Get("X-Sigsci-Redirect")
+			if len(redirect) > 0 {
+				http.Redirect(rw, req, redirect, status)
+				break
+			}
+		}
+
+		// Block
 		http.Error(rw, fmt.Sprintf("%d %s\n", status, http.StatusText(status)), status)
 	default:
 		log.Printf("ERROR: Received invalid response code from inspector (failing open): %d", wafresponse)
-		// continue with normal request
+		// Continue with normal request
 		m.handler.ServeHTTP(rw, req)
 	}
 
