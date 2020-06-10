@@ -1,0 +1,59 @@
+version: "3"
+networks:
+  mtest:
+
+services:
+  # this defines our webserver uses our sigsci-module
+  # we only define it so it is attached to our fake network
+  # it will be run a few times with different options manually
+  #
+  #
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "8085"
+    networks:
+      - mtest
+    depends_on:
+      - agent
+
+  # agent
+  agent:
+    image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/sigsci-agent:latest
+    command: [ "-debug-log-web-inputs", "2", "-rpc-address", "9090", "-debug-rpc-test-harness", "-debug-standalone", "3" ]
+    expose:
+      - "9090"
+      - "12345"
+    networks:
+      - mtest
+
+  # punching bag
+  punchingbag:
+    image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/module-testing:latest
+    networks:
+      - mtest
+    expose:
+      - "8086"
+    command: [ "/bin/punchingbag", "-addr", ":8086" ]
+
+  # mtest
+  #
+  mtest:
+    image: 803688608479.dkr.ecr.us-west-2.amazonaws.com/local-dev/module-testing:latest
+    networks:
+      - mtest
+    depends_on:
+      - web
+      - agent
+      - punchingbag
+    environment:
+      - DISABLE_HTTP_OPTIONS=1
+      - DISABLE_NOCOOKIE=1
+      - MTEST_BASEURL=web:8085
+      - MTEST_AGENT=agent:12345
+      - "ALT_RESPONSE_CODES=300 301 302 403 404 500"
+      - "MTEST_RUN_TEST_BLOCK_VIA_REDIRECT=true"
+    command: [ "/bin/wait-for", "web:8085", "--", "/bin/mtest", "-test.v" ]
+
