@@ -122,14 +122,25 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	wafresponse := out.WAFResponse
 	switch {
 	case m.config.IsAllowCode(int(wafresponse)):
-		// continue with normal request
+		// Continue with normal request
 		m.handler.ServeHTTP(rw, req)
 	case m.config.IsBlockCode(int(wafresponse)):
 		status := int(wafresponse)
+
+		// Only redirect if it is a redirect status (3xx) AND there is a redirect URL
+		if status >= 300 && status <= 399 {
+			redirect := req.Header.Get("X-Sigsci-Redirect")
+			if len(redirect) > 0 {
+				http.Redirect(rw, req, redirect, status)
+				break
+			}
+		}
+
+		// Block
 		http.Error(rw, fmt.Sprintf("%d %s\n", status, http.StatusText(status)), status)
 	default:
 		log.Printf("ERROR: Received invalid response code from inspector (failing open): %d", wafresponse)
-		// continue with normal request
+		// Continue with normal request
 		m.handler.ServeHTTP(rw, req)
 	}
 
@@ -229,15 +240,25 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 		return
 	}
 
-	// set any request headers
 	if out.RequestID != "" {
-		req.Header.Add("X-Sigsci-Requestid", out.RequestID)
+		req.Header.Set("X-Sigsci-Requestid", out.RequestID)
+	} else {
+		req.Header.Del("X-Sigsci-Requestid")
 	}
 
 	wafresponse := out.WAFResponse
-	req.Header.Add("X-Sigsci-Agentresponse", strconv.Itoa(int(wafresponse)))
+	req.Header.Set("X-Sigsci-Agentresponse", strconv.Itoa(int(wafresponse)))
+
+	// Add request headers from the WAF response to the request
+	req.Header.Del("X-Sigsci-Tags")
+	req.Header.Del("X-Sigsci-Redirect")
 	for _, kv := range out.RequestHeaders {
-		req.Header.Add(kv[0], kv[1])
+		// For X-Sigsci-* headers, use Set to override, but for custom headers, use Add to append
+		if strings.HasPrefix(http.CanonicalHeaderKey(kv[0]), "X-Sigsci-") {
+			req.Header.Set(kv[0], kv[1])
+		} else {
+			req.Header.Add(kv[0], kv[1])
+		}
 	}
 
 	inspin2 = RPCMsgIn2{
