@@ -10,23 +10,23 @@ export CGO_ENABLED=0
 go build .
 go test .
 
-### Run the linter
-if [ -z "$(which gometalinter)" ]; then
-  go get github.com/alecthomas/gometalinter
-fi
-gometalinter \
-        --vendor \
-        --deadline=60s \
-        --disable-all \
-        --enable=vetshadow \
-        --enable=ineffassign \
-        --enable=deadcode \
-        --enable=golint \
-        --enable=gofmt \
-        --enable=vet \
-        --exclude=_gen.go \
-        --exclude=/usr/local/go/src/net/lookup_unix.go \
-        .
+#### Run the linter
+#if [ -z "$(which gometalinter)" ]; then
+#  go get github.com/alecthomas/gometalinter
+#fi
+#gometalinter \
+#        --vendor \
+#        --deadline=60s \
+#        --disable-all \
+#        --enable=vetshadow \
+#        --enable=ineffassign \
+#        --enable=deadcode \
+#        --enable=golint \
+#        --enable=gofmt \
+#        --enable=vet \
+#        --exclude=_gen.go \
+#        --exclude=/usr/local/go/src/net/lookup_unix.go \
+#        .
 
 rm -rf artifacts/
 mkdir -p artifacts/sigsci-module-golang
