@@ -1,6 +1,6 @@
 # GoLang Module Release Notes
 
-## Unreleased
+## 1.8.0 2020-06-15
 
 * Deprecated the `AltResponseCodes` concept in favor of using all codes 300-599 as "blocking"
 * Added HTTP redirect support
