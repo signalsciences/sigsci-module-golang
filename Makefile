@@ -1,5 +1,3 @@
-
-
 build: ## build and lint locally
 	./scripts/build.sh
 
@@ -8,15 +6,7 @@ build: ## build and lint locally
 test: ## build and run integration test
 	./scripts/test.sh
 
-init:  ## install gometalinter and msgp locally
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install --debug
-	go get -u github.com/tinylib/msgp/msgp
-	go get .
-
-
 clean: ## cleanup
-	find . -name 'goroot' -type d | xargs rm -rf
 	rm -rf artifacts
 	find . -name '*.log' | xargs rm -f
 	go clean ./...

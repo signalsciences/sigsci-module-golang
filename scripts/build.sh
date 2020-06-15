@@ -1,21 +1,19 @@
 #!/bin/sh
 set -ex
 
-echo "package sigsci" > version.go
-echo "" >> version.go
-echo "const version = \"$(cat VERSION)\"" >> version.go
-find . -name "goroot" -type d | xargs rm -rf
-go generate ./...
-
-# make sure files made in docker are readable by all
-chmod a+r *.go
+which go
+go version
+eval $(go env | grep GOROOT)
+export GOROOT
+export CGO_ENABLED=0
 
 go build .
 go test .
 
-#        --enable=gosimple \
-#        --enable=unused \
-
+### Run the linter
+if [ -z "$(which gometalinter)" ]; then
+  go get github.com/alecthomas/gometalinter
+fi
 gometalinter \
         --vendor \
         --deadline=60s \
