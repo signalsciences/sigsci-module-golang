@@ -8,4 +8,4 @@ jobs:
     steps:
       - name: Update metadata
         run: |
-          ./scripts/update-release-metadata sigsci-module-golang ${{ github.ref }}
+          ./scripts/update-release-metadata.py sigsci-module-golang ${{ github.ref }}
