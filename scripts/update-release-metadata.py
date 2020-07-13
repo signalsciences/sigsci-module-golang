@@ -2,6 +2,7 @@
 import json
 import sys
 import boto3
+import re
 
 
 def fetch_metadata():
@@ -38,10 +39,23 @@ def write_metadata(data):
     return 1
 
 
-def main(module_name, new_tag):
+def main(module_name, new_ref):
+  if not new_ref.startswith('refs/tags/'):
+    sys.stderr.write(
+        f'Unknown reference format {new_ref}.  Expecting refs/tags/v<version>\n')
+    return 1
+  # extract the version
+  new_tag = re.sub('[A-Za-z/]', '', new_ref)
+
+  print(f'Releasing version {new_tag} of module {module_name}')
+
   release_data = fetch_metadata()
   data = json.loads(release_data)
-  module_versions = data[module_name]
+  module_versions = data.get(module_name)
+  if not module_versions:
+    sys.stderr.write(
+        f'Module {module_name} does not exist in release metadata.\n')
+    return 1
   if new_tag in module_versions:
     print(f"Tag {new_tag} is already released for module {module_name}. Exiting.")
     return 0
@@ -50,7 +64,7 @@ def main(module_name, new_tag):
 
 
 def usage():
-  print("Usage: python3 update-release-metadata.py <module> <version>")
+  print("Usage: python3 update-release-metadata.py <module> <ref>")
   return 2
 
 
