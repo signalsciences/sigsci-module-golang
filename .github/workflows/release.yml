@@ -1,5 +1,7 @@
 name: Update release db
-on: release
+on: 
+  release:
+    types: [edited]
 
 jobs:
   update:
