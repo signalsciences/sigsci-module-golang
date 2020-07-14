@@ -1,5 +1,9 @@
 # GoLang Module Release Notes
 
+## 1.8.1 2020-06-15
+
+* Added internal release metadata support.
+
 ## 1.8.0 2020-06-15
 
 * Deprecated the `AltResponseCodes` concept in favor of using all codes 300-599 as "blocking"
