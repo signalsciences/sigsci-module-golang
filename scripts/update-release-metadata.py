@@ -15,7 +15,7 @@ def fetch_metadata():
         Bucket='release-metadata',
         Key='release-versions'
     )
-  except boto3.S3.Client.exceptions.NoSuchKey:
+  except client.exceptions.NoSuchKey:
     sys.stderr.write('No release-metadata key found.  Check permissions.\n')
     return 1
 
