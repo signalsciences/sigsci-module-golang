@@ -1,7 +1,5 @@
 name: Update release db
-on: 
-  release:
-    types: [released]
+on: release
 
 jobs:
   update:
@@ -9,4 +7,5 @@ jobs:
     steps:
       - name: Update metadata
         run: |
+          ls ./scripts/
           ./scripts/update-release-metadata.py sigsci-module-golang ${{ github.ref }}
