@@ -12,8 +12,8 @@ jobs:
       - name: Configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.SIGSCI_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.SIGSCI_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.SIGSCI_PROD_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.SIGSCI_PROD_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
       - name: Setup python
         uses: actions/setup-python@v2
