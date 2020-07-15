@@ -26,3 +26,6 @@ jobs:
       - name: Update metadata
         run: |
           ./scripts/update-release-metadata.py sigsci-module-golang ${{ github.ref }}
+        env:
+          PROD_ID: ${{ secrets.SIGSCI_PROD_CANONICAL_ID }}
+

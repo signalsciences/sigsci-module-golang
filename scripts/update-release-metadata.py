@@ -3,6 +3,7 @@ import json
 import sys
 import boto3
 import re
+import os
 
 
 def fetch_metadata():
@@ -26,11 +27,16 @@ def write_metadata(data):
   '''
   Write metadata file from byte stream.
   '''
+  prod_canonical_id = os.environ.get("PROD_ID")
+  if not prod_canonical_id:
+    sys.stderr.write('Cannot find production account ID.  Exiting.\n')
+    return 1
   client = boto3.client('s3')
   resp = client.put_object(
       Body=data,
       Bucket='release-metadata',
-      Key='release-versions'
+      Key='release-versions',
+      GrantFullControl=prod_canonical_id
   )
 
   if resp.ResponseMetadata.HTTPStatusCode != 200:
@@ -40,6 +46,7 @@ def write_metadata(data):
 
 
 def main(module_name, new_ref):
+
   if not new_ref.startswith('refs/tags/'):
     sys.stderr.write(
         f'Unknown reference format {new_ref}.  Expecting refs/tags/v<version>\n')
