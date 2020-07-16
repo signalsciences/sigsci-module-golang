@@ -35,11 +35,13 @@ def write_metadata(data):
   resp = client.put_object(
       Body=data,
       Bucket='release-metadata',
-      Key='release-versions',
-      GrantFullControl=prod_canonical_id
+      Key='release-versions-rell',
+      GrantFullControl=f'id={prod_canonical_id}'
   )
 
-  if resp.ResponseMetadata.HTTPStatusCode != 200:
+  print(resp)
+
+  if resp["ResponseMetadata"]["HTTPStatusCode"] != 200:
     sys.stderr.write('Unable to upload file.  Dumping response metadata.\n')
     print(resp, file=sys.stderr)
     return 1
