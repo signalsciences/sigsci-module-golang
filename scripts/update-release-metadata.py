@@ -35,7 +35,7 @@ def write_metadata(data):
   resp = client.put_object(
       Body=data,
       Bucket='release-metadata',
-      Key='release-versions-rell',
+      Key='release-versions',
       GrantFullControl=f'id={prod_canonical_id}'
   )
 
