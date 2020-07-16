@@ -39,8 +39,6 @@ def write_metadata(data):
       GrantFullControl=f'id={prod_canonical_id}'
   )
 
-  print(resp)
-
   if resp["ResponseMetadata"]["HTTPStatusCode"] != 200:
     sys.stderr.write('Unable to upload file.  Dumping response metadata.\n')
     print(resp, file=sys.stderr)

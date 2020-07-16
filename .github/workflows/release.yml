@@ -1,7 +1,7 @@
 name: Update release db
 on: 
   release:
-    types: [released, edited]
+    types: [released]
 
 jobs:
   update:
@@ -25,7 +25,6 @@ jobs:
           pip install botocore boto3
       - name: Update metadata
         run: |
-          aws sts get-caller-identity
           ./scripts/update-release-metadata.py sigsci-module-golang ${{ github.ref }}
         env:
           PROD_ID: ${{ secrets.SIGSCI_PROD_CANONICAL_ID }}
