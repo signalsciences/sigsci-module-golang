@@ -63,7 +63,7 @@ func NewModule(h http.Handler, options ...ModuleConfigOption) (*Module, error) {
 	in := RPCMsgIn{
 		ModuleVersion: m.config.ModuleIdentifier(),
 		ServerVersion: m.config.ServerIdentifier(),
-		ServerFlavor:  "",
+		ServerFlavor:  m.config.ServerFlavor(),
 		Timestamp:     now.Unix(),
 		NowMillis:     now.UnixNano() / 1e6,
 	}
