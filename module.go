@@ -226,6 +226,7 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 	}
 
 	inspin := NewRPCMsgIn(req, reqbody, -1, -1, -1, m.config.ModuleIdentifier(), m.config.ServerIdentifier())
+	inspin.ServerFlavor = m.config.ServerFlavor()
 	m.extractHeaders(req, inspin)
 
 	if m.config.Debug() {
