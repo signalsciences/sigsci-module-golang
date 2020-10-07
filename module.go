@@ -3,6 +3,7 @@ package sigsci
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -225,8 +226,13 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 		req.Body = ioutil.NopCloser(bytes.NewBuffer(reqbody))
 	}
 
-	inspin := NewRPCMsgIn(req, reqbody, -1, -1, -1, m.config.ModuleIdentifier(), m.config.ServerIdentifier())
-	inspin.ServerFlavor = m.config.ServerFlavor()
+	inspin, err := NewRPCMsgInWithModuleConfig(m.config, req, bytes.NewReader(reqbody))
+	if err != nil {
+		if m.config.Debug() {
+			log.Printf("DEBUG: PreRequest call error (%s %s): %s", req.Method, req.RequestURI, err)
+		}
+		return
+	}
 	m.extractHeaders(req, inspin)
 
 	if m.config.Debug() {
@@ -370,6 +376,58 @@ func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur tim
 		PostBody:       string(postbody),
 		HeadersIn:      hin,
 	}
+}
+
+// NewRPCMsgInWithModuleConfig creates a message from a ModuleConfig object
+// End-users of the golang module never need to use this
+// directly and it is only exposed for performance testing
+func NewRPCMsgInWithModuleConfig(mcfg *ModuleConfig, r *http.Request, postbody io.Reader) (*RPCMsgIn, error) {
+
+	now := time.Now()
+
+	// assemble a message to send to inspector
+	tlsProtocol := ""
+	tlsCipher := ""
+	scheme := "http"
+	if r.TLS != nil {
+		// convert golang/spec integers into something human readable
+		scheme = "https"
+		tlsProtocol = tlstext.Version(r.TLS.Version)
+		tlsCipher = tlstext.CipherSuite(r.TLS.CipherSuite)
+	}
+
+	// golang removes Host header from req.Header map and
+	// promotes it to r.Host field. Add it back as the first header.
+	hin := convertHeaders(r.Header)
+	if len(r.Host) > 0 {
+		hin = append([][2]string{{"Host", r.Host}}, hin...)
+	}
+
+	body, err := ioutil.ReadAll(postbody)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RPCMsgIn{
+		ModuleVersion:  mcfg.ModuleIdentifier(),
+		ServerVersion:  mcfg.ServerIdentifier(),
+		ServerFlavor:   mcfg.ServerFlavor(),
+		ServerName:     r.Host,
+		Timestamp:      now.Unix(),
+		NowMillis:      now.UnixNano() / 1e6,
+		RemoteAddr:     stripPort(r.RemoteAddr),
+		Method:         r.Method,
+		Scheme:         scheme,
+		URI:            r.RequestURI,
+		Protocol:       r.Proto,
+		TLSProtocol:    tlsProtocol,
+		TLSCipher:      tlsCipher,
+		ResponseCode:   -1,
+		ResponseMillis: 0,
+		ResponseSize:   -1,
+		PostBody:       string(body),
+		HeadersIn:      hin,
+	}, nil
 }
 
 // stripPort removes any port from an address (e.g., the client port from the RemoteAddr)
