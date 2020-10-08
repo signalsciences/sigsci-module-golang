@@ -3,7 +3,6 @@ package sigsci
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -226,13 +225,7 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 		req.Body = ioutil.NopCloser(bytes.NewBuffer(reqbody))
 	}
 
-	inspin, err := NewRPCMsgInWithModuleConfig(m.config, req, bytes.NewReader(reqbody))
-	if err != nil {
-		if m.config.Debug() {
-			log.Printf("DEBUG: PreRequest call error (%s %s): %s", req.Method, req.RequestURI, err)
-		}
-		return
-	}
+	inspin := NewRPCMsgInWithModuleConfig(m.config, req, reqbody)
 	m.extractHeaders(req, inspin)
 
 	if m.config.Debug() {
@@ -381,7 +374,7 @@ func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur tim
 // NewRPCMsgInWithModuleConfig creates a message from a ModuleConfig object
 // End-users of the golang module never need to use this
 // directly and it is only exposed for performance testing
-func NewRPCMsgInWithModuleConfig(mcfg *ModuleConfig, r *http.Request, postbody io.Reader) (*RPCMsgIn, error) {
+func NewRPCMsgInWithModuleConfig(mcfg *ModuleConfig, r *http.Request, postbody []byte) *RPCMsgIn {
 
 	now := time.Now()
 
@@ -403,11 +396,6 @@ func NewRPCMsgInWithModuleConfig(mcfg *ModuleConfig, r *http.Request, postbody i
 		hin = append([][2]string{{"Host", r.Host}}, hin...)
 	}
 
-	body, err := ioutil.ReadAll(postbody)
-	if err != nil {
-		return nil, err
-	}
-
 	return &RPCMsgIn{
 		ModuleVersion:  mcfg.ModuleIdentifier(),
 		ServerVersion:  mcfg.ServerIdentifier(),
@@ -425,9 +413,9 @@ func NewRPCMsgInWithModuleConfig(mcfg *ModuleConfig, r *http.Request, postbody i
 		ResponseCode:   -1,
 		ResponseMillis: 0,
 		ResponseSize:   -1,
-		PostBody:       string(body),
+		PostBody:       string(postbody),
 		HeadersIn:      hin,
-	}, nil
+	}
 }
 
 // stripPort removes any port from an address (e.g., the client port from the RemoteAddr)
