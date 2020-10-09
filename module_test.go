@@ -15,6 +15,75 @@ import (
 	"time"
 )
 
+func TestNewRPCMsgInWithModuleConfigFromRequest(t *testing.T) {
+
+	c, err := NewModuleConfig(
+		AllowUnknownContentLength(true),
+		ServerFlavor("SugarAndSpice"),
+		AltResponseCodes(403),
+		AnomalyDuration(10*time.Second),
+		AnomalySize(8192),
+		CustomInspector(&RPCInspector{}, func(_ *http.Request) bool { return true }, func(_ *http.Request) {}),
+		CustomHeaderExtractor(func(_ *http.Request) (http.Header, error) { return nil, nil }),
+		Debug(true),
+		MaxContentLength(500000),
+		Socket("tcp", "0.0.0.0:1234"),
+		Timeout(10*time.Millisecond),
+	)
+	if err != nil {
+		t.Fatalf("Failed to create module config: %s", err)
+	}
+
+	b := bytes.Buffer{}
+	b.WriteString("test")
+	r, err := http.NewRequest("GET", "http://localhost/", &b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.RemoteAddr = "127.0.0.1"
+	r.Header.Add("If-None-Match", `W/"wyzzy"`)
+	r.RequestURI = "http://localhost/"
+	r.TLS = &tls.ConnectionState{}
+
+	want := RPCMsgIn{
+		ServerName:   "localhost",
+		ServerFlavor: "SugarAndSpice",
+		Method:       "GET",
+		Scheme:       "https",
+		URI:          "http://localhost/",
+		Protocol:     "HTTP/1.1",
+		RemoteAddr:   "127.0.0.1",
+		HeadersIn:    [][2]string{{"Host", "localhost"}, {"If-None-Match", `W/"wyzzy"`}},
+	}
+	eq := func(got, want RPCMsgIn) (ne string, equal bool) {
+		switch {
+		case got.ServerName != want.ServerName:
+			return "ServerHostname", false
+		case got.Method != want.Method:
+			return "Method", false
+		case got.Scheme != want.Scheme:
+			return "Scheme", false
+		case got.URI != want.URI:
+			return "URI", false
+		case got.Protocol != want.Protocol:
+			return "Protocol", false
+		case got.RemoteAddr != want.RemoteAddr:
+			return "RemoteAddr", false
+		case !reflect.DeepEqual(got.HeadersIn, want.HeadersIn):
+			return "HeadersIn", false
+		case got.ServerFlavor != want.ServerFlavor:
+			return "ServerFlavor", false
+		default:
+			return "", true
+		}
+	}
+
+	got := NewRPCMsgInWithModuleConfig(c, r, nil)
+	if ne, equal := eq(*got, want); !equal {
+		t.Errorf("NewRPCMsgInWithModuleConfig: incorrect %q", ne)
+	}
+}
+
 func TestNewRPCMsgFromRequest(t *testing.T) {
 	b := bytes.Buffer{}
 	b.WriteString("test")
