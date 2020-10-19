@@ -1,5 +1,9 @@
 # GoLang Module Release Notes
 
+## 1.8.2 2020-10-19
+
+* Added `server_flavor` config option.
+
 ## 1.8.1 2020-06-15
 
 * Added internal release metadata support.
