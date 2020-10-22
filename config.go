@@ -346,9 +346,9 @@ func ServerIdentifier(id string) ModuleConfigOption {
 
 // ServerFlavor is a function argument that sets the server
 // flavor for custom setups using revproxy.
-func ServerFlavor(serverModule string) ModuleConfigOption {
+func ServerFlavor(serverFlavor string) ModuleConfigOption {
 	return func(c *ModuleConfig) error {
-		c.serverFlavor = serverModule
+		c.serverFlavor = serverFlavor
 		return nil
 	}
 }
