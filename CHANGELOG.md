@@ -4,6 +4,10 @@
 
 * Added `server_flavor` config option.
 
+## 1.8.2 2020-06-15
+
+* Updated revision for github actions release.
+
 ## 1.8.1 2020-06-15
 
 * Added internal release metadata support.
