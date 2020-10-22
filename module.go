@@ -63,7 +63,7 @@ func NewModule(h http.Handler, options ...ModuleConfigOption) (*Module, error) {
 	in := RPCMsgIn{
 		ModuleVersion: m.config.ModuleIdentifier(),
 		ServerVersion: m.config.ServerIdentifier(),
-		ServerFlavor:  "",
+		ServerFlavor:  m.config.ServerFlavor(),
 		Timestamp:     now.Unix(),
 		NowMillis:     now.UnixNano() / 1e6,
 	}
@@ -225,7 +225,7 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 		req.Body = ioutil.NopCloser(bytes.NewBuffer(reqbody))
 	}
 
-	inspin := NewRPCMsgIn(req, reqbody, -1, -1, -1, m.config.ModuleIdentifier(), m.config.ServerIdentifier())
+	inspin := NewRPCMsgInWithModuleConfig(m.config, req, reqbody)
 	m.extractHeaders(req, inspin)
 
 	if m.config.Debug() {
@@ -366,6 +366,53 @@ func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur tim
 		ResponseCode:   int32(code),
 		ResponseMillis: int64(dur / time.Millisecond),
 		ResponseSize:   size,
+		PostBody:       string(postbody),
+		HeadersIn:      hin,
+	}
+}
+
+// NewRPCMsgInWithModuleConfig creates a message from a ModuleConfig object
+// End-users of the golang module never need to use this
+// directly and it is only exposed for performance testing
+func NewRPCMsgInWithModuleConfig(mcfg *ModuleConfig, r *http.Request, postbody []byte) *RPCMsgIn {
+
+	now := time.Now()
+
+	// assemble a message to send to inspector
+	tlsProtocol := ""
+	tlsCipher := ""
+	scheme := "http"
+	if r.TLS != nil {
+		// convert golang/spec integers into something human readable
+		scheme = "https"
+		tlsProtocol = tlstext.Version(r.TLS.Version)
+		tlsCipher = tlstext.CipherSuite(r.TLS.CipherSuite)
+	}
+
+	// golang removes Host header from req.Header map and
+	// promotes it to r.Host field. Add it back as the first header.
+	hin := convertHeaders(r.Header)
+	if len(r.Host) > 0 {
+		hin = append([][2]string{{"Host", r.Host}}, hin...)
+	}
+
+	return &RPCMsgIn{
+		ModuleVersion:  mcfg.ModuleIdentifier(),
+		ServerVersion:  mcfg.ServerIdentifier(),
+		ServerFlavor:   mcfg.ServerFlavor(),
+		ServerName:     r.Host,
+		Timestamp:      now.Unix(),
+		NowMillis:      now.UnixNano() / 1e6,
+		RemoteAddr:     stripPort(r.RemoteAddr),
+		Method:         r.Method,
+		Scheme:         scheme,
+		URI:            r.RequestURI,
+		Protocol:       r.Proto,
+		TLSProtocol:    tlsProtocol,
+		TLSCipher:      tlsCipher,
+		ResponseCode:   -1,
+		ResponseMillis: 0,
+		ResponseSize:   -1,
 		PostBody:       string(postbody),
 		HeadersIn:      hin,
 	}

@@ -33,6 +33,8 @@ var (
 	DefaultTimeout = 100 * time.Millisecond
 	// DefaultServerIdentifier is the default value
 	DefaultServerIdentifier = runtime.Version()
+	// DefaultServerFlavor is the default value
+	DefaultServerFlavor = ""
 )
 
 // HeaderExtractorFunc is a header extraction function
@@ -53,6 +55,7 @@ type ModuleConfig struct {
 	rpcAddress                string
 	rpcNetwork                string
 	serverIdentifier          string
+	serverFlavor              string
 	timeout                   time.Duration
 }
 
@@ -72,6 +75,7 @@ func NewModuleConfig(options ...ModuleConfigOption) (*ModuleConfig, error) {
 		rpcAddress:                DefaultRPCAddress,
 		rpcNetwork:                DefaultRPCNetwork,
 		serverIdentifier:          DefaultServerIdentifier,
+		serverFlavor:              DefaultServerFlavor,
 		timeout:                   DefaultTimeout,
 	}
 	if err := c.SetOptions(options...); err != nil {
@@ -183,6 +187,11 @@ func (c *ModuleConfig) RPCAddressString() string {
 // ServerIdentifier returns the configuration value
 func (c *ModuleConfig) ServerIdentifier() string {
 	return c.serverIdentifier
+}
+
+// ServerFlavor returns the configuration value
+func (c *ModuleConfig) ServerFlavor() string {
+	return c.serverFlavor
 }
 
 // Timeout returns the configuration value
@@ -331,6 +340,15 @@ func ModuleIdentifier(name, version string) ModuleConfigOption {
 func ServerIdentifier(id string) ModuleConfigOption {
 	return func(c *ModuleConfig) error {
 		c.serverIdentifier = id
+		return nil
+	}
+}
+
+// ServerFlavor is a function argument that sets the server
+// flavor for custom setups using revproxy.
+func ServerFlavor(serverFlavor string) ModuleConfigOption {
+	return func(c *ModuleConfig) error {
+		c.serverFlavor = serverFlavor
 		return nil
 	}
 }
