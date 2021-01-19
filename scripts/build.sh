@@ -32,8 +32,8 @@ rm -rf artifacts/
 mkdir -p artifacts/sigsci-module-golang
 cp -rf \
   VERSION CHANGELOG.md LICENSE.md README.md \
-  clientcodec.go rpc.go rpc_gen.go rpcinspector.go inspector.go responsewriter.go module.go version.go \
-  responsewriter_test.go module_test.go \
+  clientcodec.go rpc.go rpc_gen.go rpcinspector.go inspector.go responsewriter.go module.go version.go config.go \
+  responsewriter_test.go module_test.go config_test.go \
   examples \
   artifacts/sigsci-module-golang/
 
