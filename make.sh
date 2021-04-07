@@ -1,7 +1,7 @@
 #!/bin/sh
 set -ex
 
-./scripts/build.sh
+# ./scripts/build.sh
 
 if [ -n "${PROD_ID}" ]; then
   ## setup our package properties by distro

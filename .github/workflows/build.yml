@@ -1,7 +1,11 @@
 name: sigsci-module-golang
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+      - andy/pr-ci
+  pull_request:
+   
 
 jobs:
   build:
@@ -18,6 +22,8 @@ jobs:
         aws-region: us-west-2
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
+    - name: build
+      run: ./scripts/build.sh
     - name: Run make script
       run: |
         aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 803688608479.dkr.ecr.us-west-2.amazonaws.com
