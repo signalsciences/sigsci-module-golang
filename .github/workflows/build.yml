@@ -24,9 +24,10 @@ jobs:
       uses: actions/checkout@v2
     - name: build
       run: ./scripts/build.sh
-    - name: Run make script
+    - name: upload
+      if: ${{ github.ref }} == "/refs/heads/master"
       run: |
         aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 803688608479.dkr.ecr.us-west-2.amazonaws.com
-        ./make.sh
+        ./upload.sh
       env:
         PROD_ID: ${{ secrets.SIGSCI_PROD_CANONICAL_ID }}
