@@ -1,8 +1,6 @@
 #!/bin/sh
 set -ex
 
-./scripts/build.sh
-
 if [ -n "${PROD_ID}" ]; then
   ## setup our package properties by distro
   PKG_NAME="sigsci-module-golang"
