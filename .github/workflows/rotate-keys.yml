@@ -1,0 +1,31 @@
+on: 
+    schedule:
+      - cron: '0 17 * * 3' # every Wed at 11 AM PDT
+
+jobs:
+  rotate:
+    name: Rotate IAM User Keys
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.0.0
+      - name: Rotate AWS Access Keys
+        uses: kneemaa/github-action-rotate-aws-secrets@a0336cf15368b9516a0b11d122e96e950da12a7e #Commit sha for v1.1.0
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SIGSCI_CORE_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SIGSCI_CORE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{secrets.ROBOTICS_UPDATE_GH_SECRETS}}
+          OWNER_REPOSITORY: ${{github.repository}} 
+          GITHUB_ACCESS_KEY_NAME: "SIGSCI_CORE_ACCESS_KEY_ID"
+          GITHUB_SECRET_KEY_NAME: "SIGSCI_CORE_SECRET_ACCESS_KEY"
+
+      - name: Send Slack Status
+        if: failure()
+        uses: 8398a7/action-slack@45986a1c69e93353648c176ce49eecddebebf64e # Commit sha for v3.9.0
+        with:
+          status: ${{job.status}}
+          author_name: ${{ secrets.AUTHOR_NAME }}
+          username: ${{ secrets.AUTHOR_NAME }}
+          text: Failed to rotate the tokens for ${{ secrets.USERNAME }}
+          channel: ${{ secrets.CHANNEL}}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
