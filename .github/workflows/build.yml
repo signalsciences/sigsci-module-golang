@@ -2,7 +2,7 @@ name: sigsci-module-golang
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
    
 
@@ -24,7 +24,7 @@ jobs:
     - name: build
       run: ./scripts/build.sh
     - name: upload
-      if: ${{ github.ref == '/refs/heads/master' }}
+      if: ${{ github.ref == '/refs/heads/main' }}
       run: |
         aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 803688608479.dkr.ecr.us-west-2.amazonaws.com
         ./upload.sh
