@@ -270,6 +270,7 @@ func TestInspectableContentType(t *testing.T) {
 		{true, "text/x-javascript"},
 		{true, "text/x-json"},
 		{true, "application/javascript"},
+		{true, "application/graphql"},
 		{false, "octet/stream"},
 		{false, "junk/yard"},
 	}
@@ -328,6 +329,7 @@ func TestModule(t *testing.T) {
 		{genTestRequest("POST", "http://example.com/", "application/rss+xml", `<a>1</a>`), 403, "XSS"},
 		{genTestRequest("POST", "http://example.com/", "application/rss+xml", `<a>1</a>`), 500, "XSS"},
 		{genTestRequest("POST", "http://example.com/", "application/rss+xml", `<a>1</a>`), 200, ""},
+		{genTestRequest("POST", "http://example.com/", "application/graphql", `{}`), 200, ""},
 	}
 
 	for pos, tt := range cases {
