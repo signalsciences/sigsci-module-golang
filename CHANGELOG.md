@@ -1,5 +1,9 @@
 # GoLang Module Release Notes
 
+## 1.10.0 2021-05-26
+
+* Added support for `application/graphql` content-type 
+
 ## 1.9.0 2020-10-22
 
 * Added `server_flavor` config option.
