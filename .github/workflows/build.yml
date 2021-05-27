@@ -2,7 +2,7 @@ name: sigsci-module-golang
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
    
 

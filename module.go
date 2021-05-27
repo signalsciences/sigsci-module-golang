@@ -473,6 +473,10 @@ func inspectableContentType(s string) bool {
 	// gRPC (protobuf)
 	case strings.HasPrefix(s, "application/grpc"):
 		return true
+
+	// GraphQL
+	case strings.HasPrefix(s, "application/graphql"):
+		return true
 	}
 
 	return false
