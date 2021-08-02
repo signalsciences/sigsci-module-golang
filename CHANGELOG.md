@@ -1,4 +1,4 @@
-# GoLang Module Release Notes
+# Golang Module Release Notes
 
 ## 1.10.0 2021-05-26
 
@@ -6,15 +6,15 @@
 
 ## 1.9.0 2020-10-22
 
-* Added `server_flavor` config option.
+* Added `server_flavor` config option
 
 ## 1.8.2 2020-06-15
 
-* Updated revision for github actions release.
+* Updated revision for github actions release
 
 ## 1.8.1 2020-06-15
 
-* Added internal release metadata support.
+* Added internal release metadata support
 
 ## 1.8.0 2020-06-15
 
@@ -46,7 +46,7 @@
 
 ## 1.6.2 2019-08-25
 
-* Added support for a custom header extractor fn
+* Added support for a custom header extractor function
 
 ## 1.6.1 2019-06-13
 
