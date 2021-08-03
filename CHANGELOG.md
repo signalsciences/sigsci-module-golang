@@ -1,5 +1,9 @@
 # Golang Module Release Notes
 
+## Unreleased
+
+* Standardized release notes
+
 ## 1.10.0 2021-05-26
 
 * Added support for `application/graphql` content-type 
