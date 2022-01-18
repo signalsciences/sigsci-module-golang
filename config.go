@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -45,6 +46,7 @@ type ModuleConfig struct {
 	allowUnknownContentLength bool
 	anomalyDuration           time.Duration
 	anomalySize               int64
+	expectedContentTypes      []string
 	debug                     bool
 	headerExtractor           HeaderExtractorFunc
 	inspector                 Inspector
@@ -65,6 +67,7 @@ func NewModuleConfig(options ...ModuleConfigOption) (*ModuleConfig, error) {
 		allowUnknownContentLength: DefaultAllowUnknownContentLength,
 		anomalyDuration:           DefaultAnomalyDuration,
 		anomalySize:               DefaultAnomalySize,
+		expectedContentTypes:      make([]string, 0),
 		debug:                     DefaultDebug,
 		headerExtractor:           nil,
 		inspector:                 DefaultInspector,
@@ -108,6 +111,17 @@ func (c *ModuleConfig) IsAllowCode(code int) bool {
 	return code == 200
 }
 
+// IsExpectedContentType returns true if the given content type string is
+// in the list of configured custom Content-Types
+func (c *ModuleConfig) IsExpectedContentType(s string) bool {
+	for _, ct := range c.expectedContentTypes {
+		if strings.HasPrefix(s, ct) {
+			return true
+		}
+	}
+	return false
+}
+
 // AllowUnknownContentLength returns the configuration value
 func (c *ModuleConfig) AllowUnknownContentLength() bool {
 	return c.allowUnknownContentLength
@@ -132,6 +146,11 @@ func (c *ModuleConfig) AnomalyDuration() time.Duration {
 // AnomalySize returns the configuration value
 func (c *ModuleConfig) AnomalySize() int64 {
 	return c.anomalySize
+}
+
+// ExpectedContentTypes returns the slice of additional custom content types
+func (c *ModuleConfig) ExpectedContentTypes() []string {
+	return c.expectedContentTypes
 }
 
 // Debug returns the configuration value
@@ -246,6 +265,15 @@ func AnomalyDuration(dur time.Duration) ModuleConfigOption {
 func AnomalySize(size int64) ModuleConfigOption {
 	return func(c *ModuleConfig) error {
 		c.anomalySize = size
+		return nil
+	}
+}
+
+// ExpectedContentType is a function argument that adds a custom Content-Type
+// that should have request bodies sent to the agent for inspection
+func ExpectedContentType(s string) ModuleConfigOption {
+	return func(c *ModuleConfig) error {
+		c.expectedContentTypes = append(c.expectedContentTypes, s)
 		return nil
 	}
 }

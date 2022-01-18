@@ -87,6 +87,8 @@ func testResponseWriter(t *testing.T, w ResponseWriter, flusher bool) {
 
 	// Verify the response
 	resp := recorder.Result()
+	defer resp.Body.Close()
+
 	if resp.StatusCode != status {
 		t.Errorf("Unexpected status code=%d, expected=%d", resp.StatusCode, status)
 	}

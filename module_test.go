@@ -271,6 +271,7 @@ func TestInspectableContentType(t *testing.T) {
 		{true, "text/x-json"},
 		{true, "application/javascript"},
 		{true, "application/graphql"},
+		{true, ""},
 		{false, "octet/stream"},
 		{false, "junk/yard"},
 	}
@@ -364,6 +365,7 @@ func TestModule(t *testing.T) {
 		w := httptest.NewRecorder()
 		m.ServeHTTP(w, req)
 		resp := w.Result()
+		defer resp.Body.Close()
 
 		if dump, err := httputil.DumpRequest(req, true); err == nil {
 			t.Log("SERVER REQUEST:\n" + string(dump))
