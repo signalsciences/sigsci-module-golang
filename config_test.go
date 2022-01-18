@@ -23,6 +23,9 @@ func TestDefaultModuleConfig(t *testing.T) {
 	if c.AnomalySize() != DefaultAnomalySize {
 		t.Errorf("Unexpected AnomalySize: %v", c.AnomalySize())
 	}
+	if len(c.ExpectedContentTypes()) != 0 {
+		t.Errorf("Unexpected ExpectedContentTypes: expected length 0, got %d", len(c.ExpectedContentTypes()))
+	}
 	if c.Debug() != DefaultDebug {
 		t.Errorf("Unexpected Debug: %v", c.Debug())
 	}
@@ -88,6 +91,8 @@ func TestConfiguredModuleConfig(t *testing.T) {
 		AnomalySize(8192),
 		CustomInspector(&RPCInspector{}, func(_ *http.Request) bool { return true }, func(_ *http.Request) {}),
 		CustomHeaderExtractor(func(_ *http.Request) (http.Header, error) { return nil, nil }),
+		ExpectedContentType("application/foobar"),
+		ExpectedContentType("application/fizzbuzz"),
 		Debug(true),
 		MaxContentLength(500000),
 		Socket("tcp", "0.0.0.0:1234"),
@@ -107,6 +112,9 @@ func TestConfiguredModuleConfig(t *testing.T) {
 	}
 	if c.AnomalySize() != 8192 {
 		t.Errorf("Unexpected AnomalySize: %v", c.AnomalySize())
+	}
+	if len(c.ExpectedContentTypes()) != 2 || c.ExpectedContentTypes()[0] != "application/foobar" || c.ExpectedContentTypes()[1] != "application/fizzbuzz" {
+		t.Errorf("Unexpected ExpectedContentTypes: %v", c.ExpectedContentTypes())
 	}
 	if c.Debug() != true {
 		t.Errorf("Unexpected Debug: %v", c.Debug())
@@ -171,6 +179,8 @@ func TestFromModuleConfig(t *testing.T) {
 		AltResponseCodes(403),
 		AnomalyDuration(10*time.Second),
 		AnomalySize(8192),
+		ExpectedContentType("application/foobar"),
+		ExpectedContentType("application/fizzbuzz"),
 		CustomInspector(&RPCInspector{}, func(_ *http.Request) bool { return true }, func(_ *http.Request) {}),
 		CustomHeaderExtractor(func(_ *http.Request) (http.Header, error) { return nil, nil }),
 		Debug(true),
@@ -199,6 +209,9 @@ func TestFromModuleConfig(t *testing.T) {
 	}
 	if c.AnomalySize() != 8192 {
 		t.Errorf("Unexpected AnomalySize: %v", c.AnomalySize())
+	}
+	if len(c.ExpectedContentTypes()) != 2 || c.ExpectedContentTypes()[0] != "application/foobar" || c.ExpectedContentTypes()[1] != "application/fizzbuzz" {
+		t.Errorf("Unexpected ExpectedContentTypes: %v", c.ExpectedContentTypes())
 	}
 	if c.Debug() != true {
 		t.Errorf("Unexpected Debug: %v", c.Debug())

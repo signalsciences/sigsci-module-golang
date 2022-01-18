@@ -1,7 +1,8 @@
 # Golang Module Release Notes
 
-## Unreleased
+## 1.11.0 2022-01-18
 
+* Improved `Content-Type` header inspection
 * Standardized release notes
 
 ## 1.10.0 2021-05-26

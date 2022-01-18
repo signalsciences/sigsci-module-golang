@@ -445,7 +445,26 @@ func shouldReadBody(req *http.Request, m *Module) bool {
 	}
 
 	// only read certain types of content
-	return inspectableContentType(req.Header.Get("Content-Type"))
+	if inspectableContentType(req.Header.Get("Content-Type")) {
+		return true
+	}
+
+	// read custom configured content type(s)
+	if m.config.IsExpectedContentType(req.Header.Get("Content-Type")) {
+		return true
+	}
+
+	// read the body if there are multiple Content-Type headers
+	if len(req.Header.Values("Content-Type")) > 1 {
+		return true
+	}
+
+	// Check for comma separated Content-Types
+	if len(strings.SplitN(req.Header.Get("Content-Type"), ",", 2)) > 1 {
+		return true
+	}
+
+	return false
 }
 
 // inspectableContentType returns true for an inspectable content type
@@ -476,6 +495,10 @@ func inspectableContentType(s string) bool {
 
 	// GraphQL
 	case strings.HasPrefix(s, "application/graphql"):
+		return true
+
+	// No type provided
+	case s == "":
 		return true
 	}
 
