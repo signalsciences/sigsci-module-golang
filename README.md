@@ -20,7 +20,19 @@ git remote set-head origin -a
 ```
 
 ## Installation
-`go get github.com/signalsciences/sigsci-module-golang`
+
+```console
+cd $(go env GOPATH)/src/github.com/signalsciences
+git clone https://github.com/signalsciences/sigsci-module-golang.git
+```
+
+## Running tests
+
+Must be logged into our ECR repo
+
+```console
+aws ecr get-login-password --region us-west-2 --profile sigsci_prod | docker login --username AWS --password-stdin 803688608479.dkr.ecr.us-west-2.amazonaws.com
+```
 
 ## Example Code Snippet
 ```go
