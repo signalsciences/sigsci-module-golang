@@ -1,6 +1,6 @@
 module github.com/signalsciences/sigsci-module-golang
 
-go 1.17
+go 1.13
 
 require (
 	github.com/signalsciences/tlstext v1.2.0
