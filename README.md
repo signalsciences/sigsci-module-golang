@@ -20,7 +20,10 @@ git remote set-head origin -a
 ```
 
 ## Installation
-`go get github.com/signalsciences/sigsci-module-golang`
+
+```console
+go get github.com/signalsciences/sigsci-module-golang@latest
+```
 
 ## Example Code Snippet
 ```go

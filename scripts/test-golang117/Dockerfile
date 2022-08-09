@@ -1,6 +1,4 @@
-FROM golang:1.14-alpine
-
-COPY goroot/ /go/
+FROM golang:1.17-alpine
 
 # we will mount the current directory here
 VOLUME [ "/go/src/github.com/signalsciences/sigsci-module-golang" ]

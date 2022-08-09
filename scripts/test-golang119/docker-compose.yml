@@ -53,6 +53,6 @@ services:
       - DISABLE_NOCOOKIE=1
       - MTEST_BASEURL=web:8085
       - MTEST_AGENT=agent:12345
+      - "MTEST_RUN_TEST_BLOCK_VIA_REDIRECT=true"
     command: [ "/bin/wait-for", "web:8085", "--", "/bin/mtest", "-test.v" ]
-
 

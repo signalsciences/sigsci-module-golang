@@ -1,4 +1,4 @@
-FROM golang:1.14-alpine
+FROM golang:1.18-alpine
 
 COPY goroot/ /go/
 # this is used to lint and build tarball
