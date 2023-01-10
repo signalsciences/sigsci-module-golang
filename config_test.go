@@ -29,8 +29,8 @@ func TestDefaultModuleConfig(t *testing.T) {
 	if c.Debug() != DefaultDebug {
 		t.Errorf("Unexpected Debug: %v", c.Debug())
 	}
-	if c.HeaderExtractor() != nil {
-		t.Errorf("Unexpected HeaderExtractor: %p", c.HeaderExtractor())
+	if c.RawHeaderExtractor() != nil {
+		t.Errorf("Unexpected RawHeaderExtractor: %p", c.RawHeaderExtractor())
 	}
 	if c.Inspector() != DefaultInspector {
 		t.Errorf("Unexpected Inspector: %v", c.Inspector())
@@ -90,7 +90,7 @@ func TestConfiguredModuleConfig(t *testing.T) {
 		AnomalyDuration(10*time.Second),
 		AnomalySize(8192),
 		CustomInspector(&RPCInspector{}, func(_ *http.Request) bool { return true }, func(_ *http.Request) {}),
-		CustomHeaderExtractor(func(_ *http.Request) (http.Header, error) { return nil, nil }),
+		RawHeaderExtractor(func(_ *http.Request) [][2]string { return nil }),
 		ExpectedContentType("application/foobar"),
 		ExpectedContentType("application/fizzbuzz"),
 		Debug(true),
@@ -119,8 +119,8 @@ func TestConfiguredModuleConfig(t *testing.T) {
 	if c.Debug() != true {
 		t.Errorf("Unexpected Debug: %v", c.Debug())
 	}
-	if c.HeaderExtractor() == nil {
-		t.Errorf("Unexpected HeaderExtractor: %p", c.HeaderExtractor())
+	if c.RawHeaderExtractor() == nil {
+		t.Errorf("Unexpected HeaderExtractor: %p", c.RawHeaderExtractor())
 	}
 	if c.Inspector() == DefaultInspector {
 		t.Errorf("Unexpected Inspector: %v", c.Inspector())
@@ -182,7 +182,7 @@ func TestFromModuleConfig(t *testing.T) {
 		ExpectedContentType("application/foobar"),
 		ExpectedContentType("application/fizzbuzz"),
 		CustomInspector(&RPCInspector{}, func(_ *http.Request) bool { return true }, func(_ *http.Request) {}),
-		CustomHeaderExtractor(func(_ *http.Request) (http.Header, error) { return nil, nil }),
+		RawHeaderExtractor(func(_ *http.Request) [][2]string { return nil }),
 		Debug(true),
 		MaxContentLength(500000),
 		Socket("tcp", "0.0.0.0:1234"),
@@ -216,8 +216,8 @@ func TestFromModuleConfig(t *testing.T) {
 	if c.Debug() != true {
 		t.Errorf("Unexpected Debug: %v", c.Debug())
 	}
-	if c.HeaderExtractor() == nil {
-		t.Errorf("Unexpected HeaderExtractor: %p", c.HeaderExtractor())
+	if c.RawHeaderExtractor() == nil {
+		t.Errorf("Unexpected HeaderExtractor: %p", c.RawHeaderExtractor())
 	}
 	if c.Inspector() == DefaultInspector {
 		t.Errorf("Unexpected Inspector: %v", c.Inspector())

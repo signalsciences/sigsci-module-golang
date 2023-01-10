@@ -24,7 +24,7 @@ func TestNewRPCMsgInWithModuleConfigFromRequest(t *testing.T) {
 		AnomalyDuration(10*time.Second),
 		AnomalySize(8192),
 		CustomInspector(&RPCInspector{}, func(_ *http.Request) bool { return true }, func(_ *http.Request) {}),
-		CustomHeaderExtractor(func(_ *http.Request) (http.Header, error) { return nil, nil }),
+		RawHeaderExtractor(func(r *http.Request) [][2]string { return nil }),
 		Debug(true),
 		MaxContentLength(500000),
 		Socket("tcp", "0.0.0.0:1234"),
@@ -78,61 +78,11 @@ func TestNewRPCMsgInWithModuleConfigFromRequest(t *testing.T) {
 		}
 	}
 
-	got := NewRPCMsgInWithModuleConfig(c, r, nil)
+	got := NewRPCMsgIn(c, r, nil, -1, -1, 0)
 	if ne, equal := eq(*got, want); !equal {
 		t.Errorf("NewRPCMsgInWithModuleConfig: incorrect %q", ne)
 	}
 }
-
-func TestNewRPCMsgFromRequest(t *testing.T) {
-	b := bytes.Buffer{}
-	b.WriteString("test")
-	r, err := http.NewRequest("GET", "http://localhost/", &b)
-	if err != nil {
-		t.Fatal(err)
-	}
-	r.RemoteAddr = "127.0.0.1"
-	r.Header.Add("If-None-Match", `W/"wyzzy"`)
-	r.RequestURI = "http://localhost/"
-	r.TLS = &tls.ConnectionState{}
-
-	want := RPCMsgIn{
-		ServerName: "localhost",
-		Method:     "GET",
-		Scheme:     "https",
-		URI:        "http://localhost/",
-		Protocol:   "HTTP/1.1",
-		RemoteAddr: "127.0.0.1",
-		HeadersIn:  [][2]string{{"Host", "localhost"}, {"If-None-Match", `W/"wyzzy"`}},
-	}
-	eq := func(got, want RPCMsgIn) (ne string, equal bool) {
-		switch {
-		case got.ServerName != want.ServerName:
-			return "ServerHostname", false
-		case got.Method != want.Method:
-			return "Method", false
-		case got.Scheme != want.Scheme:
-			return "Scheme", false
-		case got.URI != want.URI:
-			return "URI", false
-		case got.Protocol != want.Protocol:
-			return "Protocol", false
-		case got.RemoteAddr != want.RemoteAddr:
-			return "RemoteAddr", false
-		case !reflect.DeepEqual(got.HeadersIn, want.HeadersIn):
-			return "HeadersIn", false
-		default:
-			return "", true
-		}
-	}
-
-	got := NewRPCMsgIn(r, nil, -1, -1, -1, "", "")
-	if ne, equal := eq(*got, want); !equal {
-		t.Errorf("NewRPCMsgIn: incorrect %q", ne)
-	}
-}
-
-// helper functions
 
 func TestStripPort(t *testing.T) {
 	cases := []struct {
@@ -201,6 +151,18 @@ func TestShouldReadBody(t *testing.T) {
 		if got != tt.want {
 			t.Errorf("test %d: expected %v got %v", pos, tt.want, got)
 		}
+	}
+}
+
+func TestRequestHeader(t *testing.T) {
+	r := &http.Request{
+		Host:   "example.com",
+		Header: http.Header{"ContentType": {"text/plain"}},
+	}
+	got := requestHeader(r)
+	expected := [][2]string{{"Host", "example.com"}, {"ContentType", "text/plain"}}
+	if !reflect.DeepEqual(expected, got) {
+		t.Errorf("expected %#v, got %#v", expected, got)
 	}
 }
 

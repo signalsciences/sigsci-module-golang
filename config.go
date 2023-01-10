@@ -38,8 +38,8 @@ var (
 	DefaultServerFlavor = ""
 )
 
-// HeaderExtractorFunc is a header extraction function
-type HeaderExtractorFunc func(*http.Request) (http.Header, error)
+// RawHeaderExtractorFunc is a header extraction function
+type RawHeaderExtractorFunc func(*http.Request) [][2]string
 
 // ModuleConfig is a configuration object for a Module
 type ModuleConfig struct {
@@ -48,7 +48,7 @@ type ModuleConfig struct {
 	anomalySize               int64
 	expectedContentTypes      []string
 	debug                     bool
-	headerExtractor           HeaderExtractorFunc
+	rawHeaderExtractor        RawHeaderExtractorFunc
 	inspector                 Inspector
 	inspInit                  InspectorInitFunc
 	inspFini                  InspectorFiniFunc
@@ -69,7 +69,6 @@ func NewModuleConfig(options ...ModuleConfigOption) (*ModuleConfig, error) {
 		anomalySize:               DefaultAnomalySize,
 		expectedContentTypes:      make([]string, 0),
 		debug:                     DefaultDebug,
-		headerExtractor:           nil,
 		inspector:                 DefaultInspector,
 		inspInit:                  nil,
 		inspFini:                  nil,
@@ -158,9 +157,9 @@ func (c *ModuleConfig) Debug() bool {
 	return c.debug
 }
 
-// HeaderExtractor returns the configuration value
-func (c *ModuleConfig) HeaderExtractor() func(r *http.Request) (http.Header, error) {
-	return c.headerExtractor
+// RawHeaderExtractor returns the configuration value
+func (c *ModuleConfig) RawHeaderExtractor() RawHeaderExtractorFunc {
+	return c.rawHeaderExtractor
 }
 
 // Inspector returns the inspector
@@ -228,10 +227,11 @@ type ModuleConfigOption func(*ModuleConfig) error
 // to read the body when the content length is not specified.
 //
 // NOTE: This can be dangerous (fill RAM) if set when the max content
-//       length is not limited by the server itself. This is intended
-//       for use with gRPC where the max message receive length is limited.
-//       Do NOT enable this if there is no limit set on the request
-//       content length!
+//
+//	length is not limited by the server itself. This is intended
+//	for use with gRPC where the max message receive length is limited.
+//	Do NOT enable this if there is no limit set on the request
+//	content length!
 func AllowUnknownContentLength(allow bool) ModuleConfigOption {
 	return func(c *ModuleConfig) error {
 		c.allowUnknownContentLength = allow
@@ -290,12 +290,12 @@ func CustomInspector(insp Inspector, init InspectorInitFunc, fini InspectorFiniF
 	}
 }
 
-// CustomHeaderExtractor is a function argument that sets a function to extract
+// RawHeaderExtractor is a function argument that sets a function to extract
 // an alternative header object from the request. It is primarily intended only
 // for internal use.
-func CustomHeaderExtractor(fn func(r *http.Request) (http.Header, error)) ModuleConfigOption {
+func RawHeaderExtractor(fn RawHeaderExtractorFunc) ModuleConfigOption {
 	return func(c *ModuleConfig) error {
-		c.headerExtractor = fn
+		c.rawHeaderExtractor = fn
 		return nil
 	}
 }

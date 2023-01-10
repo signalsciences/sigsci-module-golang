@@ -19,12 +19,11 @@ import (
 // data collection and sends it to the Signal Sciences Agent for
 // inspection.
 type Module struct {
-	config          *ModuleConfig
-	handler         http.Handler
-	inspector       Inspector
-	inspInit        InspectorInitFunc
-	inspFini        InspectorFiniFunc
-	headerExtractor HeaderExtractorFunc
+	config    *ModuleConfig
+	handler   http.Handler
+	inspector Inspector
+	inspInit  InspectorInitFunc
+	inspFini  InspectorFiniFunc
 }
 
 // NewModule wraps an existing http.Handler with one that extracts data and
@@ -39,12 +38,11 @@ func NewModule(h http.Handler, options ...ModuleConfigOption) (*Module, error) {
 
 	// The following are the defaults, overridden by passing in functional options
 	m := Module{
-		handler:         h,
-		config:          config,
-		inspector:       config.Inspector(),
-		inspInit:        config.InspectorInit(),
-		inspFini:        config.InspectorFini(),
-		headerExtractor: config.HeaderExtractor(),
+		handler:   h,
+		config:    config,
+		inspector: config.Inspector(),
+		inspInit:  config.InspectorInit(),
+		inspFini:  config.InspectorFini(),
 	}
 
 	// By default, use an RPC based inspector if not configured externally
@@ -169,8 +167,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if m.config.Debug() {
 			log.Printf("DEBUG: calling 'RPC.PostRequest' due to anomaly: method=%s host=%s url=%s code=%d size=%d duration=%s", req.Method, req.Host, req.URL, code, size, duration)
 		}
-		inspin := NewRPCMsgIn(req, nil, code, size, duration, m.config.ModuleIdentifier(), m.config.ServerIdentifier())
-		m.extractHeaders(req, inspin)
+		inspin := NewRPCMsgIn(m.config, req, nil, code, size, duration)
 		inspin.WAFResponse = wafresponse
 		inspin.HeadersOut = convertHeaders(rw.Header())
 
@@ -225,8 +222,7 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 		req.Body = ioutil.NopCloser(bytes.NewBuffer(reqbody))
 	}
 
-	inspin := NewRPCMsgInWithModuleConfig(m.config, req, reqbody)
-	m.extractHeaders(req, inspin)
+	inspin := NewRPCMsgIn(m.config, req, reqbody, -1, -1, 0)
 
 	if m.config.Debug() {
 		log.Printf("DEBUG: Making PreRequest call to inspector: %s %s", inspin.Method, inspin.URI)
@@ -276,20 +272,6 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 	return
 }
 
-func (m *Module) extractHeaders(req *http.Request, inspin *RPCMsgIn) {
-	// If the user supplied a custom header extractor, use it to unpack the
-	// headers. If there no custom header extractor or it returns an error,
-	// fallback to the native headers on the request.
-	if m.headerExtractor != nil {
-		hin, err := m.headerExtractor(req)
-		if err == nil {
-			inspin.HeadersIn = convertHeaders(hin)
-		} else if m.config.Debug() {
-			log.Printf("DEBUG: Error extracting custom headers, using native headers: %s", err)
-		}
-	}
-}
-
 // inspectorPostRequest makes a postrequest call to the inspector
 func (m *Module) inspectorPostRequest(inspin *RPCMsgIn) error {
 	// Create message to agent from the input request
@@ -329,93 +311,42 @@ func (m *Module) inspectorUpdateRequest(inspin RPCMsgIn2) error {
 // NewRPCMsgIn creates a message from a go http.Request object
 // End-users of the golang module never need to use this
 // directly and it is only exposed for performance testing
-func NewRPCMsgIn(r *http.Request, postbody []byte, code int, size int64, dur time.Duration, module, server string) *RPCMsgIn {
+func NewRPCMsgIn(mcfg *ModuleConfig, r *http.Request, postbody []byte, code int, size int64, dur time.Duration) *RPCMsgIn {
 	now := time.Now()
 
-	// assemble a message to send to inspector
-	tlsProtocol := ""
-	tlsCipher := ""
-	scheme := "http"
-	if r.TLS != nil {
-		// convert golang/spec integers into something human readable
-		scheme = "https"
-		tlsProtocol = tlstext.Version(r.TLS.Version)
-		tlsCipher = tlstext.CipherSuite(r.TLS.CipherSuite)
-	}
-
-	// golang removes Host header from req.Header map and
-	// promotes it to r.Host field. Add it back as the first header.
-	hin := convertHeaders(r.Header)
-	if len(r.Host) > 0 {
-		hin = append([][2]string{{"Host", r.Host}}, hin...)
-	}
-
-	return &RPCMsgIn{
-		ModuleVersion:  module,
-		ServerVersion:  server,
-		ServerName:     r.Host,
-		Timestamp:      now.Unix(),
-		NowMillis:      now.UnixNano() / 1e6,
-		RemoteAddr:     stripPort(r.RemoteAddr),
-		Method:         r.Method,
-		Scheme:         scheme,
-		URI:            r.RequestURI,
-		Protocol:       r.Proto,
-		TLSProtocol:    tlsProtocol,
-		TLSCipher:      tlsCipher,
-		ResponseCode:   int32(code),
-		ResponseMillis: int64(dur / time.Millisecond),
-		ResponseSize:   size,
-		PostBody:       string(postbody),
-		HeadersIn:      hin,
-	}
-}
-
-// NewRPCMsgInWithModuleConfig creates a message from a ModuleConfig object
-// End-users of the golang module never need to use this
-// directly and it is only exposed for performance testing
-func NewRPCMsgInWithModuleConfig(mcfg *ModuleConfig, r *http.Request, postbody []byte) *RPCMsgIn {
-
-	now := time.Now()
-
-	// assemble a message to send to inspector
-	tlsProtocol := ""
-	tlsCipher := ""
-	scheme := "http"
-	if r.TLS != nil {
-		// convert golang/spec integers into something human readable
-		scheme = "https"
-		tlsProtocol = tlstext.Version(r.TLS.Version)
-		tlsCipher = tlstext.CipherSuite(r.TLS.CipherSuite)
-	}
-
-	// golang removes Host header from req.Header map and
-	// promotes it to r.Host field. Add it back as the first header.
-	hin := convertHeaders(r.Header)
-	if len(r.Host) > 0 {
-		hin = append([][2]string{{"Host", r.Host}}, hin...)
-	}
-
-	return &RPCMsgIn{
+	msgIn := RPCMsgIn{
 		ModuleVersion:  mcfg.ModuleIdentifier(),
 		ServerVersion:  mcfg.ServerIdentifier(),
 		ServerFlavor:   mcfg.ServerFlavor(),
 		ServerName:     r.Host,
 		Timestamp:      now.Unix(),
-		NowMillis:      now.UnixNano() / 1e6,
+		NowMillis:      now.UnixMilli(),
 		RemoteAddr:     stripPort(r.RemoteAddr),
 		Method:         r.Method,
-		Scheme:         scheme,
 		URI:            r.RequestURI,
 		Protocol:       r.Proto,
-		TLSProtocol:    tlsProtocol,
-		TLSCipher:      tlsCipher,
-		ResponseCode:   -1,
-		ResponseMillis: 0,
-		ResponseSize:   -1,
+		ResponseCode:   int32(code),
+		ResponseMillis: dur.Milliseconds(),
+		ResponseSize:   size,
 		PostBody:       string(postbody),
-		HeadersIn:      hin,
 	}
+
+	if r.TLS != nil {
+		// convert golang/spec integers into something human readable
+		msgIn.Scheme = "https"
+		msgIn.TLSProtocol = tlstext.Version(r.TLS.Version)
+		msgIn.TLSCipher = tlstext.CipherSuite(r.TLS.CipherSuite)
+	} else {
+		msgIn.Scheme = "http"
+	}
+
+	if hdrs := mcfg.RawHeaderExtractor(); hdrs != nil {
+		msgIn.HeadersIn = hdrs(r)
+	}
+	if msgIn.HeadersIn == nil {
+		msgIn.HeadersIn = requestHeader(r)
+	}
+	return &msgIn
 }
 
 // stripPort removes any port from an address (e.g., the client port from the RemoteAddr)
@@ -503,6 +434,22 @@ func inspectableContentType(s string) bool {
 	}
 
 	return false
+}
+
+// requestHeader returns request headers with host header
+func requestHeader(r *http.Request) [][2]string {
+	out := make([][2]string, 0, len(r.Header)+1)
+	// golang removes Host header from req.Header map and
+	// promotes it to r.Host field. Add it back as the first header.
+	if len(r.Host) > 0 {
+		out = append(out, [2]string{"Host", r.Host})
+	}
+	for key, values := range r.Header {
+		for _, value := range values {
+			out = append(out, [2]string{key, value})
+		}
+	}
+	return out
 }
 
 // converts a http.Header map to a [][2]string
