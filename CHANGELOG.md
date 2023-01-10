@@ -1,5 +1,9 @@
 # Golang Module Release Notes
 
+## 1.12.0 2023-01-10
+
+* Replaced internal custom header extractor function with raw header extractor function
+
 ## 1.11.0 2022-01-18
 
 * Improved `Content-Type` header inspection
