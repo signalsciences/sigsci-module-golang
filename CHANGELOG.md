@@ -1,5 +1,9 @@
 # Golang Module Release Notes
 
+## 1.12.1 2023-02-24
+
+* Sync versions
+
 ## 1.12.0 2023-01-10
 
 * Replaced internal custom header extractor function with raw header extractor function
