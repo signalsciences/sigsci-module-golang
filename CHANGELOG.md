@@ -23,7 +23,7 @@
 
 ## 1.8.2 2020-06-15
 
-* Updated revision for github actions release
+* Updated revision for GitHub Actions release
 
 ## 1.8.1 2020-06-15
 
@@ -36,7 +36,7 @@
 
 ## 1.7.1 2020-04-06
 
-* Updated the response recorder to implement the io.ReaderFrom interface
+* Updated the response recorder to implement the `io.ReaderFrom` interface
 * Fixed some linter issues with missing comments on exported functions
 
 ## 1.7.0 2020-03-11
@@ -50,8 +50,8 @@
 
 ## 1.6.4 2019-11-06
 
-* Updated helloworld example to be more configurable allowing it to be used in other example documentation
-* Added the ability to support inspecting gRPC (protobuf) content
+* Updated the hello world example to be more configurable allowing it to be used in other example documentation
+* Added the ability to support inspecting gRPC (`protobuf`) content
 
 ## 1.6.3 2019-09-12
 
@@ -70,7 +70,7 @@
 * Updated list of inspectable XML content types
 * Added `http.Flusher` interface when the underlying handler supports this interface
 * Updated timeout to include time to connect to the agent
-* Cleaned up docs/code/examples
+* Cleaned up docs, code, and examples
 
 ## 1.5.0 2019-01-31
 
@@ -108,7 +108,7 @@
 ## 1.3.0 2017-09-19
 
 * Improved internal testing
-* Updated msgpack serialization
+* Updated `msgpack` serialization
 
 ## 1.2.3 2017-09-11
 
@@ -127,7 +127,7 @@
 ## 1.2.0 2017-03-06
 
 * Improved performance
-* Exposed internal datastructures and methods
+* Exposed internal data structures and methods
   to allow alternative module implementations and
   performance tests
 
