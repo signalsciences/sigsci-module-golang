@@ -50,7 +50,7 @@
 
 ## 1.6.4 2019-11-06
 
-* Updated the hello world example to be more configurable allowing it to be used in other example documentation
+* Updated the example to be more configurable allowing it to be used in other example documentation
 * Added the ability to support inspecting gRPC (`protobuf`) content
 
 ## 1.6.3 2019-09-12
