@@ -57,22 +57,15 @@ log.Fatal(s.ListenAndServe())
 
 ## Examples
 
-The [examples/helloworld](examples/helloworld) directory contains complete example code.
+The [examples/gin-example.go](examples/gin-example.go) directory contains complete example code.
 
-To run the simple [helloworld](examples/helloworld/main.go) example:
+To run the simple [gin-example](examples/gin-example.go) example:
 ```shell
 # Syntax:
-#   go run ./examples/helloworld <listener-address:port> [<sigsci-agent-rpc-address>]
-#
-# Run WITHOUT sigsci enabled
-go run ./examples/helloworld localhost:8000
-# Run WITH sigsci-agent listening via a UNIX Domain socket file
-go run ./examples/helloworld localhost:8000 /var/run/sigsci.sock
-# Run WITH sigsci-agent listening via a TCP address:port
-go run ./examples/helloworld localhost:8000 localhost:9999
+#   go run ./examples/gin-example.go
 ```
 
-The above will run a HTTP listener on `localhost:8000`, which will send any
+The above will run a HTTP listener on `127.0.0.1:8080`, which will send any
 traffic to this listener to a running sigsci-agent for inspection (if
 an agent address is configured).
 
