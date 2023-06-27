@@ -47,6 +47,7 @@ type ModuleConfig struct {
 	anomalyDuration           time.Duration
 	anomalySize               int64
 	expectedContentTypes      []string
+	extendContentTypes        bool
 	debug                     bool
 	rawHeaderExtractor        RawHeaderExtractorFunc
 	inspector                 Inspector
@@ -274,6 +275,15 @@ func AnomalySize(size int64) ModuleConfigOption {
 func ExpectedContentType(s string) ModuleConfigOption {
 	return func(c *ModuleConfig) error {
 		c.expectedContentTypes = append(c.expectedContentTypes, s)
+		return nil
+	}
+}
+
+// ExtendContentTypes is a function argument to indicate that send request body
+// of any content-type to the agent for inspection
+func ExtendContentTypes(v bool) ModuleConfigOption {
+	return func(c *ModuleConfig) error {
+		c.extendContentTypes = v
 		return nil
 	}
 }

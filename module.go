@@ -385,6 +385,10 @@ func shouldReadBody(req *http.Request, m *Module) bool {
 		return true
 	}
 
+	if m.config.extendContentTypes {
+		return true
+	}
+
 	// read the body if there are multiple Content-Type headers
 	if len(req.Header.Values("Content-Type")) > 1 {
 		return true
