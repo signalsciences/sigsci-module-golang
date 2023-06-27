@@ -1,5 +1,9 @@
 # Golang Module Release Notes
 
+## 1.12.2 2023-06-26
+
+* Added `ExtendContentTypes` config option to send request body of any content-type to agent for inspection
+
 ## 1.12.1 2023-02-24
 
 * Sync versions
