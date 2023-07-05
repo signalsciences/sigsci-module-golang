@@ -375,6 +375,10 @@ func shouldReadBody(req *http.Request, m *Module) bool {
 		}
 	}
 
+	if m.config.extendContentTypes {
+		return true
+	}
+
 	// only read certain types of content
 	if inspectableContentType(req.Header.Get("Content-Type")) {
 		return true
@@ -382,10 +386,6 @@ func shouldReadBody(req *http.Request, m *Module) bool {
 
 	// read custom configured content type(s)
 	if m.config.IsExpectedContentType(req.Header.Get("Content-Type")) {
-		return true
-	}
-
-	if m.config.extendContentTypes {
 		return true
 	}
 
