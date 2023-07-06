@@ -1,5 +1,9 @@
 # Golang Module Release Notes
 
+## 1.13.0 2023-07-06
+
+* Added new module configuration option for more granular inspection
+
 ## 1.12.1 2023-02-24
 
 * Sync versions
