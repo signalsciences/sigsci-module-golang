@@ -36,4 +36,5 @@ type Inspector interface {
 	// collected in the `PreRequest` with the given response data (e.g., status code,
 	// headers, etc.).
 	UpdateRequest(*RPCMsgIn2, *RPCMsgOut) error
+	LogRequest(*RPCMsgIn, *RPCMsgOut) error
 }

@@ -86,6 +86,24 @@ func (ri *RPCInspector) UpdateRequest(in *RPCMsgIn2, out *RPCMsgOut) error {
 	return err
 }
 
+// LogRequest sends a RPC.LogRequest message to the agent
+func (ri *RPCInspector) LogRequest(in *RPCMsgIn, out *RPCMsgOut) error {
+	client, err := ri.GetRPCClient()
+	if err == nil {
+
+		var rpcout int
+		err = client.Call("RPC.LogRequest", in, &rpcout)
+		ri.CloseRPCClient(client, err)
+
+		// Always success as the rpcout is not currently used
+		out.WAFResponse = 200
+		out.RequestID = ""
+		out.RequestHeaders = nil
+	}
+
+	return err
+}
+
 // GetRPCClient gets a RPC client
 func (ri *RPCInspector) GetRPCClient() (*rpc.Client, error) {
 	if ri.InitRPCClientFunc != nil {

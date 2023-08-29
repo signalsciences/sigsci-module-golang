@@ -445,3 +445,11 @@ func (insp *testInspector) UpdateRequest(in *RPCMsgIn2, out *RPCMsgOut) error {
 
 	return nil
 }
+
+func (insp *testInspector) LogRequest(in *RPCMsgIn, out *RPCMsgOut) error {
+	out.WAFResponse = insp.resp
+	out.RequestID = ""
+	out.RequestHeaders = nil
+
+	return nil
+}
