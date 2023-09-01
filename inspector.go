@@ -36,5 +36,10 @@ type Inspector interface {
 	// collected in the `PreRequest` with the given response data (e.g., status code,
 	// headers, etc.).
 	UpdateRequest(*RPCMsgIn2, *RPCMsgOut) error
+	// LogRequest can be optionally called if the waf-data-log-all config option in the agent
+	// is set to true.  This is used to log to the waf-data-log files specified in the config option
+	// and this RPC call is required because in order to log once per HTTP request we need to know
+	// upfront which of the following PreRequest, UpdateRequest or PostRequest calls will be made
+	// and this information is only available in the context of the module
 	LogRequest(*RPCMsgIn, *RPCMsgOut) error
 }
