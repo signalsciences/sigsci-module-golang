@@ -1,6 +1,6 @@
 package sigsci
 
-//go:generate msgp -unexported -tests=false
+//go:generate go run github.com/tinylib/msgp@v1.2.4 -unexported -tests=false
 
 //
 // This is for messages to and from the agent
@@ -34,8 +34,22 @@ type RPCMsgIn struct {
 // RPCMsgOut is sent back to the webserver
 type RPCMsgOut struct {
 	WAFResponse    int32
-	RequestID      string      `json:",omitempty"` // Set if the server expects an UpdateRequest with this ID (UUID)
-	RequestHeaders [][2]string `json:",omitempty"` // Any additional information in the form of additional request headers
+	RequestID      string      `json:",omitempty"`                  // Set if the server expects an UpdateRequest with this ID (UUID)
+	RequestHeaders [][2]string `json:",omitempty"`                  // Any additional information in the form of additional request headers
+	RespActions    []Action    `json:",omitempty" msg:",omitempty"` // Add or Delete application response headers
+}
+
+const (
+	AddHdr int8 = iota + 1
+	SetHdr
+	SetNEHdr
+	DelHdr
+)
+
+//msgp:tuple Action
+type Action struct {
+	Code int8
+	Args []string
 }
 
 // RPCMsgIn2 is a follow-up message from the webserver to the Agent

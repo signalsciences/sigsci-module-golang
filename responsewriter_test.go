@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
@@ -116,10 +117,38 @@ func testResponseWriter(t *testing.T, w ResponseWriter, flusher bool) {
 
 // TestResponseWriter tests a non-flusher ResponseWriter
 func TestResponseWriter(t *testing.T) {
-	testResponseWriter(t, NewResponseWriter(&testResponseRecorder{httptest.NewRecorder()}), false)
+	testResponseWriter(t, NewResponseWriter(&testResponseRecorder{httptest.NewRecorder()}, nil), false)
 }
 
 // TestResponseWriterFlusher tests a flusher ResponseWriter
 func TestResponseWriterFlusher(t *testing.T) {
-	testResponseWriter(t, NewResponseWriter(&testResponseRecorderFlusher{httptest.NewRecorder()}), true)
+	testResponseWriter(t, NewResponseWriter(&testResponseRecorderFlusher{httptest.NewRecorder()}, nil), true)
+}
+
+func TestResponseHeaders(t *testing.T) {
+
+	resp := &httptest.ResponseRecorder{
+		HeaderMap: http.Header{
+			"X-Powered-By": []string{"aa"},
+			"Content-Type": []string{"text/plain"},
+			"X-Report":     []string{"bb"},
+		},
+	}
+	actions := []Action{
+		{AddHdr, []string{"csp", "src=abc"}},
+		{SetHdr, []string{"content-type", "text/json"}},
+		{DelHdr, []string{"x-powered-by"}},
+		{SetNEHdr, []string{"x-report", "cc"}},
+	}
+	NewResponseWriter(resp, actions).Write([]byte("foo"))
+
+	got := resp.Header()
+	expected := http.Header{
+		"Csp":          []string{"src=abc"},
+		"Content-Type": []string{"text/json"},
+		"X-Report":     []string{"bb"},
+	}
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("expected %v, got %v", expected, got)
+	}
 }

@@ -7,6 +7,132 @@ import (
 )
 
 // DecodeMsg implements msgp.Decodable
+func (z *Action) DecodeMsg(dc *msgp.Reader) (err error) {
+	var zb0001 uint32
+	zb0001, err = dc.ReadArrayHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	if zb0001 != 2 {
+		err = msgp.ArrayError{Wanted: 2, Got: zb0001}
+		return
+	}
+	z.Code, err = dc.ReadInt8()
+	if err != nil {
+		err = msgp.WrapError(err, "Code")
+		return
+	}
+	var zb0002 uint32
+	zb0002, err = dc.ReadArrayHeader()
+	if err != nil {
+		err = msgp.WrapError(err, "Args")
+		return
+	}
+	if cap(z.Args) >= int(zb0002) {
+		z.Args = (z.Args)[:zb0002]
+	} else {
+		z.Args = make([]string, zb0002)
+	}
+	for za0001 := range z.Args {
+		z.Args[za0001], err = dc.ReadString()
+		if err != nil {
+			err = msgp.WrapError(err, "Args", za0001)
+			return
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z *Action) EncodeMsg(en *msgp.Writer) (err error) {
+	// array header, size 2
+	err = en.Append(0x92)
+	if err != nil {
+		return
+	}
+	err = en.WriteInt8(z.Code)
+	if err != nil {
+		err = msgp.WrapError(err, "Code")
+		return
+	}
+	err = en.WriteArrayHeader(uint32(len(z.Args)))
+	if err != nil {
+		err = msgp.WrapError(err, "Args")
+		return
+	}
+	for za0001 := range z.Args {
+		err = en.WriteString(z.Args[za0001])
+		if err != nil {
+			err = msgp.WrapError(err, "Args", za0001)
+			return
+		}
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z *Action) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// array header, size 2
+	o = append(o, 0x92)
+	o = msgp.AppendInt8(o, z.Code)
+	o = msgp.AppendArrayHeader(o, uint32(len(z.Args)))
+	for za0001 := range z.Args {
+		o = msgp.AppendString(o, z.Args[za0001])
+	}
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *Action) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadArrayHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	if zb0001 != 2 {
+		err = msgp.ArrayError{Wanted: 2, Got: zb0001}
+		return
+	}
+	z.Code, bts, err = msgp.ReadInt8Bytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err, "Code")
+		return
+	}
+	var zb0002 uint32
+	zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err, "Args")
+		return
+	}
+	if cap(z.Args) >= int(zb0002) {
+		z.Args = (z.Args)[:zb0002]
+	} else {
+		z.Args = make([]string, zb0002)
+	}
+	for za0001 := range z.Args {
+		z.Args[za0001], bts, err = msgp.ReadStringBytes(bts)
+		if err != nil {
+			err = msgp.WrapError(err, "Args", za0001)
+			return
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z *Action) Msgsize() (s int) {
+	s = 1 + msgp.Int8Size + msgp.ArrayHeaderSize
+	for za0001 := range z.Args {
+		s += msgp.StringPrefixSize + len(z.Args[za0001])
+	}
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
 func (z *RPCMsgIn) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
@@ -1103,6 +1229,53 @@ func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
+		case "RespActions":
+			var zb0004 uint32
+			zb0004, err = dc.ReadArrayHeader()
+			if err != nil {
+				err = msgp.WrapError(err, "RespActions")
+				return
+			}
+			if cap(z.RespActions) >= int(zb0004) {
+				z.RespActions = (z.RespActions)[:zb0004]
+			} else {
+				z.RespActions = make([]Action, zb0004)
+			}
+			for za0003 := range z.RespActions {
+				var zb0005 uint32
+				zb0005, err = dc.ReadArrayHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "RespActions", za0003)
+					return
+				}
+				if zb0005 != 2 {
+					err = msgp.ArrayError{Wanted: 2, Got: zb0005}
+					return
+				}
+				z.RespActions[za0003].Code, err = dc.ReadInt8()
+				if err != nil {
+					err = msgp.WrapError(err, "RespActions", za0003, "Code")
+					return
+				}
+				var zb0006 uint32
+				zb0006, err = dc.ReadArrayHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "RespActions", za0003, "Args")
+					return
+				}
+				if cap(z.RespActions[za0003].Args) >= int(zb0006) {
+					z.RespActions[za0003].Args = (z.RespActions[za0003].Args)[:zb0006]
+				} else {
+					z.RespActions[za0003].Args = make([]string, zb0006)
+				}
+				for za0004 := range z.RespActions[za0003].Args {
+					z.RespActions[za0003].Args[za0004], err = dc.ReadString()
+					if err != nil {
+						err = msgp.WrapError(err, "RespActions", za0003, "Args", za0004)
+						return
+					}
+				}
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -1116,48 +1289,100 @@ func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 3
-	// write "WAFResponse"
-	err = en.Append(0x83, 0xab, 0x57, 0x41, 0x46, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65)
+	// check for omitted fields
+	zb0001Len := uint32(4)
+	var zb0001Mask uint8 /* 4 bits */
+	_ = zb0001Mask
+	if z.RespActions == nil {
+		zb0001Len--
+		zb0001Mask |= 0x8
+	}
+	// variable map header, size zb0001Len
+	err = en.Append(0x80 | uint8(zb0001Len))
 	if err != nil {
 		return
 	}
-	err = en.WriteInt32(z.WAFResponse)
-	if err != nil {
-		err = msgp.WrapError(err, "WAFResponse")
-		return
-	}
-	// write "RequestID"
-	err = en.Append(0xa9, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x44)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.RequestID)
-	if err != nil {
-		err = msgp.WrapError(err, "RequestID")
-		return
-	}
-	// write "RequestHeaders"
-	err = en.Append(0xae, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73)
-	if err != nil {
-		return
-	}
-	err = en.WriteArrayHeader(uint32(len(z.RequestHeaders)))
-	if err != nil {
-		err = msgp.WrapError(err, "RequestHeaders")
-		return
-	}
-	for za0001 := range z.RequestHeaders {
-		err = en.WriteArrayHeader(uint32(2))
+
+	// skip if no fields are to be emitted
+	if zb0001Len != 0 {
+		// write "WAFResponse"
+		err = en.Append(0xab, 0x57, 0x41, 0x46, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65)
 		if err != nil {
-			err = msgp.WrapError(err, "RequestHeaders", za0001)
 			return
 		}
-		for za0002 := range z.RequestHeaders[za0001] {
-			err = en.WriteString(z.RequestHeaders[za0001][za0002])
+		err = en.WriteInt32(z.WAFResponse)
+		if err != nil {
+			err = msgp.WrapError(err, "WAFResponse")
+			return
+		}
+		// write "RequestID"
+		err = en.Append(0xa9, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x44)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.RequestID)
+		if err != nil {
+			err = msgp.WrapError(err, "RequestID")
+			return
+		}
+		// write "RequestHeaders"
+		err = en.Append(0xae, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73)
+		if err != nil {
+			return
+		}
+		err = en.WriteArrayHeader(uint32(len(z.RequestHeaders)))
+		if err != nil {
+			err = msgp.WrapError(err, "RequestHeaders")
+			return
+		}
+		for za0001 := range z.RequestHeaders {
+			err = en.WriteArrayHeader(uint32(2))
 			if err != nil {
-				err = msgp.WrapError(err, "RequestHeaders", za0001, za0002)
+				err = msgp.WrapError(err, "RequestHeaders", za0001)
 				return
+			}
+			for za0002 := range z.RequestHeaders[za0001] {
+				err = en.WriteString(z.RequestHeaders[za0001][za0002])
+				if err != nil {
+					err = msgp.WrapError(err, "RequestHeaders", za0001, za0002)
+					return
+				}
+			}
+		}
+		if (zb0001Mask & 0x8) == 0 { // if not omitted
+			// write "RespActions"
+			err = en.Append(0xab, 0x52, 0x65, 0x73, 0x70, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73)
+			if err != nil {
+				return
+			}
+			err = en.WriteArrayHeader(uint32(len(z.RespActions)))
+			if err != nil {
+				err = msgp.WrapError(err, "RespActions")
+				return
+			}
+			for za0003 := range z.RespActions {
+				// array header, size 2
+				err = en.Append(0x92)
+				if err != nil {
+					return
+				}
+				err = en.WriteInt8(z.RespActions[za0003].Code)
+				if err != nil {
+					err = msgp.WrapError(err, "RespActions", za0003, "Code")
+					return
+				}
+				err = en.WriteArrayHeader(uint32(len(z.RespActions[za0003].Args)))
+				if err != nil {
+					err = msgp.WrapError(err, "RespActions", za0003, "Args")
+					return
+				}
+				for za0004 := range z.RespActions[za0003].Args {
+					err = en.WriteString(z.RespActions[za0003].Args[za0004])
+					if err != nil {
+						err = msgp.WrapError(err, "RespActions", za0003, "Args", za0004)
+						return
+					}
+				}
 			}
 		}
 	}
@@ -1167,20 +1392,47 @@ func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *RPCMsgOut) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 3
-	// string "WAFResponse"
-	o = append(o, 0x83, 0xab, 0x57, 0x41, 0x46, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65)
-	o = msgp.AppendInt32(o, z.WAFResponse)
-	// string "RequestID"
-	o = append(o, 0xa9, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x44)
-	o = msgp.AppendString(o, z.RequestID)
-	// string "RequestHeaders"
-	o = append(o, 0xae, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73)
-	o = msgp.AppendArrayHeader(o, uint32(len(z.RequestHeaders)))
-	for za0001 := range z.RequestHeaders {
-		o = msgp.AppendArrayHeader(o, uint32(2))
-		for za0002 := range z.RequestHeaders[za0001] {
-			o = msgp.AppendString(o, z.RequestHeaders[za0001][za0002])
+	// check for omitted fields
+	zb0001Len := uint32(4)
+	var zb0001Mask uint8 /* 4 bits */
+	_ = zb0001Mask
+	if z.RespActions == nil {
+		zb0001Len--
+		zb0001Mask |= 0x8
+	}
+	// variable map header, size zb0001Len
+	o = append(o, 0x80|uint8(zb0001Len))
+
+	// skip if no fields are to be emitted
+	if zb0001Len != 0 {
+		// string "WAFResponse"
+		o = append(o, 0xab, 0x57, 0x41, 0x46, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65)
+		o = msgp.AppendInt32(o, z.WAFResponse)
+		// string "RequestID"
+		o = append(o, 0xa9, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x44)
+		o = msgp.AppendString(o, z.RequestID)
+		// string "RequestHeaders"
+		o = append(o, 0xae, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73)
+		o = msgp.AppendArrayHeader(o, uint32(len(z.RequestHeaders)))
+		for za0001 := range z.RequestHeaders {
+			o = msgp.AppendArrayHeader(o, uint32(2))
+			for za0002 := range z.RequestHeaders[za0001] {
+				o = msgp.AppendString(o, z.RequestHeaders[za0001][za0002])
+			}
+		}
+		if (zb0001Mask & 0x8) == 0 { // if not omitted
+			// string "RespActions"
+			o = append(o, 0xab, 0x52, 0x65, 0x73, 0x70, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73)
+			o = msgp.AppendArrayHeader(o, uint32(len(z.RespActions)))
+			for za0003 := range z.RespActions {
+				// array header, size 2
+				o = append(o, 0x92)
+				o = msgp.AppendInt8(o, z.RespActions[za0003].Code)
+				o = msgp.AppendArrayHeader(o, uint32(len(z.RespActions[za0003].Args)))
+				for za0004 := range z.RespActions[za0003].Args {
+					o = msgp.AppendString(o, z.RespActions[za0003].Args[za0004])
+				}
+			}
 		}
 	}
 	return
@@ -1247,6 +1499,53 @@ func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 				}
 			}
+		case "RespActions":
+			var zb0004 uint32
+			zb0004, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "RespActions")
+				return
+			}
+			if cap(z.RespActions) >= int(zb0004) {
+				z.RespActions = (z.RespActions)[:zb0004]
+			} else {
+				z.RespActions = make([]Action, zb0004)
+			}
+			for za0003 := range z.RespActions {
+				var zb0005 uint32
+				zb0005, bts, err = msgp.ReadArrayHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "RespActions", za0003)
+					return
+				}
+				if zb0005 != 2 {
+					err = msgp.ArrayError{Wanted: 2, Got: zb0005}
+					return
+				}
+				z.RespActions[za0003].Code, bts, err = msgp.ReadInt8Bytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "RespActions", za0003, "Code")
+					return
+				}
+				var zb0006 uint32
+				zb0006, bts, err = msgp.ReadArrayHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "RespActions", za0003, "Args")
+					return
+				}
+				if cap(z.RespActions[za0003].Args) >= int(zb0006) {
+					z.RespActions[za0003].Args = (z.RespActions[za0003].Args)[:zb0006]
+				} else {
+					z.RespActions[za0003].Args = make([]string, zb0006)
+				}
+				for za0004 := range z.RespActions[za0003].Args {
+					z.RespActions[za0003].Args[za0004], bts, err = msgp.ReadStringBytes(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "RespActions", za0003, "Args", za0004)
+						return
+					}
+				}
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -1266,6 +1565,13 @@ func (z *RPCMsgOut) Msgsize() (s int) {
 		s += msgp.ArrayHeaderSize
 		for za0002 := range z.RequestHeaders[za0001] {
 			s += msgp.StringPrefixSize + len(z.RequestHeaders[za0001][za0002])
+		}
+	}
+	s += 12 + msgp.ArrayHeaderSize
+	for za0003 := range z.RespActions {
+		s += 1 + msgp.Int8Size + msgp.ArrayHeaderSize
+		for za0004 := range z.RespActions[za0003].Args {
+			s += msgp.StringPrefixSize + len(z.RespActions[za0003].Args[za0004])
 		}
 	}
 	return

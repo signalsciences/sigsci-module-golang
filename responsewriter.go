@@ -23,13 +23,14 @@ type ResponseWriterFlusher interface {
 }
 
 // NewResponseWriter returns a ResponseWriter or ResponseWriterFlusher depending on the base http.ResponseWriter.
-func NewResponseWriter(base http.ResponseWriter) ResponseWriter {
+func NewResponseWriter(base http.ResponseWriter, actions []Action) ResponseWriter {
 	// NOTE: according to net/http docs, if WriteHeader is not called explicitly,
 	// the first call to Write will trigger an implicit WriteHeader(http.StatusOK).
 	// this is why the default code is 200 and it only changes if WriteHeader is called.
 	w := &responseRecorder{
-		base: base,
-		code: 200,
+		base:    base,
+		code:    200,
+		actions: actions,
 	}
 	if _, ok := w.base.(http.Flusher); ok {
 		return &responseRecorderFlusher{w}
@@ -39,9 +40,10 @@ func NewResponseWriter(base http.ResponseWriter) ResponseWriter {
 
 // responseRecorder wraps a base http.ResponseWriter allowing extraction of additional inspection data
 type responseRecorder struct {
-	base http.ResponseWriter
-	code int
-	size int64
+	base    http.ResponseWriter
+	code    int
+	size    int64
+	actions []Action
 }
 
 // BaseResponseWriter returns the base http.ResponseWriter allowing access if needed
@@ -66,12 +68,37 @@ func (w *responseRecorder) Header() http.Header {
 
 // WriteHeader writes the header, recording the status code for inspection
 func (w *responseRecorder) WriteHeader(status int) {
+	if w.actions != nil {
+		w.mergeHeader()
+	}
 	w.code = status
 	w.base.WriteHeader(status)
 }
 
+func (w *responseRecorder) mergeHeader() {
+	hdr := w.base.Header()
+	for _, a := range w.actions {
+		switch a.Code {
+		case AddHdr:
+			hdr.Add(a.Args[0], a.Args[1])
+		case SetHdr:
+			hdr.Set(a.Args[0], a.Args[1])
+		case SetNEHdr:
+			if len(hdr.Get(a.Args[0])) == 0 {
+				hdr.Set(a.Args[0], a.Args[1])
+			}
+		case DelHdr:
+			hdr.Del(a.Args[0])
+		}
+	}
+	w.actions = nil
+}
+
 // Write writes data, tracking the length written for inspection
 func (w *responseRecorder) Write(b []byte) (int, error) {
+	if w.actions != nil {
+		w.mergeHeader()
+	}
 	w.size += int64(len(b))
 	return w.base.Write(b)
 }

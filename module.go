@@ -115,7 +115,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	rw := NewResponseWriter(w)
+	rw := NewResponseWriter(w, out.RespActions)
 
 	wafresponse := out.WAFResponse
 	switch {
