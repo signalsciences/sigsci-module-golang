@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	"github.com/signalsciences/sigsci-module-golang/schema"
 )
 
 // testResponseRecorder is a httptest.ResponseRecorder without the Flusher interface
@@ -117,12 +119,12 @@ func testResponseWriter(t *testing.T, w ResponseWriter, flusher bool) {
 
 // TestResponseWriter tests a non-flusher ResponseWriter
 func TestResponseWriter(t *testing.T) {
-	testResponseWriter(t, NewResponseWriter(&testResponseRecorder{httptest.NewRecorder()}, nil), false)
+	testResponseWriter(t, NewResponseWriter(&testResponseRecorder{httptest.NewRecorder()}), false)
 }
 
 // TestResponseWriterFlusher tests a flusher ResponseWriter
 func TestResponseWriterFlusher(t *testing.T) {
-	testResponseWriter(t, NewResponseWriter(&testResponseRecorderFlusher{httptest.NewRecorder()}, nil), true)
+	testResponseWriter(t, NewResponseWriter(&testResponseRecorderFlusher{httptest.NewRecorder()}), true)
 }
 
 func TestResponseHeaders(t *testing.T) {
@@ -134,13 +136,13 @@ func TestResponseHeaders(t *testing.T) {
 			"X-Report":     []string{"bb"},
 		},
 	}
-	actions := []Action{
-		{AddHdr, []string{"csp", "src=abc"}},
-		{SetHdr, []string{"content-type", "text/json"}},
-		{DelHdr, []string{"x-powered-by"}},
-		{SetNEHdr, []string{"x-report", "cc"}},
+	actions := []schema.Action{
+		{schema.AddHdr, []string{"csp", "src=abc"}},
+		{schema.SetHdr, []string{"content-type", "text/json"}},
+		{schema.DelHdr, []string{"x-powered-by"}},
+		{schema.SetNEHdr, []string{"x-report", "cc"}},
 	}
-	NewResponseWriter(resp, actions).Write([]byte("foo"))
+	newResponseWriter(resp, actions).Write([]byte("foo"))
 
 	got := resp.Header()
 	expected := http.Header{

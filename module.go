@@ -12,8 +12,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/signalsciences/sigsci-module-golang/schema"
 	"github.com/signalsciences/tlstext"
 )
+
+type RPCMsgIn = schema.RPCMsgIn
+type RPCMsgIn2 = schema.RPCMsgIn2
+type RPCMsgOut = schema.RPCMsgOut
 
 // Module is an http.Handler that wraps an existing handler with
 // data collection and sends it to the Signal Sciences Agent for
@@ -115,7 +120,7 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	rw := NewResponseWriter(w, out.RespActions)
+	rw := newResponseWriter(w, out.RespActions)
 
 	wafresponse := out.WAFResponse
 	switch {

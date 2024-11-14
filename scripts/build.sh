@@ -30,9 +30,9 @@ go test .
 
 rm -rf artifacts/
 mkdir -p artifacts/sigsci-module-golang
-cp -rf \
+cp --parents -rf \
   VERSION CHANGELOG.md LICENSE.md README.md \
-  clientcodec.go rpc.go rpc_gen.go rpcinspector.go inspector.go responsewriter.go module.go version.go config.go \
+  clientcodec.go schema/rpc.go schema/rpc_gen.go rpcinspector.go inspector.go responsewriter.go module.go version.go config.go \
   responsewriter_test.go module_test.go config_test.go \
   examples \
   artifacts/sigsci-module-golang/

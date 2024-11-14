@@ -1,4 +1,4 @@
-package sigsci
+package schema
 
 //go:generate go run github.com/tinylib/msgp@v1.2.4 -unexported -tests=false
 
