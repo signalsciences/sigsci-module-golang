@@ -1,6 +1,6 @@
 # Golang Module Release Notes
 
-## 1.14.0 2024-11-08
+## 1.14.0 2024-11-18
 
 * Allow the agent to edit application response headers
 
