@@ -81,6 +81,8 @@ func (w *responseRecorder) WriteHeader(status int) {
 	w.base.WriteHeader(status)
 }
 
+// Merge in our header modifications using the appropriate functions in
+// the Header type in net/http
 func (w *responseRecorder) mergeHeader() {
 	hdr := w.base.Header()
 	for _, a := range w.actions {
