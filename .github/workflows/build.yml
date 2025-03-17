@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: [ '1.23' ]
+        go: [ '1.18' ]
     name: Build ${{ matrix.go }}
     steps:
     - uses: aws-actions/configure-aws-credentials@v1-node16
