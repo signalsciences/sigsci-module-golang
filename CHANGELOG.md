@@ -1,5 +1,8 @@
 # Golang Module Release Notes
 
+## 1.14.1 2025-03-17
+* Run `scripts/build.sh` in a Docker image (in `make build`) so that it works on MacOS.
+
 ## 1.14.0 2024-11-18
 
 * Allow the agent to edit application response headers
