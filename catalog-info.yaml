@@ -1,0 +1,58 @@
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: signalsciences/sigsci-module-golang
+  description: Golang module for the core agent.
+  labels: {}
+  links:
+    - icon: notifications
+      title: PagerDuty
+      url: https://fastly.pagerduty.com/schedules#P2YWBPB
+    - icon: developerBoard
+      title: JIRA
+      url: https://fastly.atlassian.net/browse/AGENT
+    - icon: docs
+      title: Troubleshooting Docs
+      url: https://security-products-docs.prd.k8s.secretcdn.net/agent-and-modules/sigsci-agent/TROUBLESHOOTING/
+  name: sigsci-module-golang
+  tags: []
+  title: sigsci module golang
+spec:
+  dependsOn: []
+  fastly:
+    compliance:
+      customerFacingIfCompromised: false
+      customerTraffic: false
+      endUserTraffic: false
+      hasSensitiveData:
+        - none
+      inScopeForAudit: false
+      internetAccessible: false
+      isAuthoritativeSource: false
+      propagatesToEdge: false
+      requiresAccessToPlatformSpecificApisForConfig: false
+      tier: tier_2
+      whereDataIsStored:
+        - not applicable
+      whereServiceIsRunning:
+        - local
+  lifecycle: generally-available
+  owner: group:ngwaf-agent-modules
+  type: service
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: signalsciences/sigsci-module-golang
+  description: Signal Sciences module for Go
+  name: sigsci-module-golang
+  title: signalsciences/sigsci-module-golang
+spec:
+  lifecycle: source
+  owner: group:ngwaf-agent-modules
+  type: repository
