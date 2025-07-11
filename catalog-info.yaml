@@ -50,7 +50,7 @@ metadata:
   annotations:
     github.com/project-slug: signalsciences/sigsci-module-golang
   description: Signal Sciences module for Go
-  name: sigsci-module-golang
+  name: sigsci-module-golang-repo
   title: signalsciences/sigsci-module-golang
 spec:
   lifecycle: source
