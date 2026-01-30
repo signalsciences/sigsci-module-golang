@@ -3,7 +3,7 @@ package sigsci
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -218,13 +218,13 @@ func (m *Module) inspectorPreRequest(req *http.Request) (inspin2 RPCMsgIn2, out 
 		// It's possible that it is an error event
 		// but not sure what it is. Likely
 		// the client disconnected.
-		reqbody, _ = ioutil.ReadAll(req.Body)
+		reqbody, _ = io.ReadAll(req.Body)
 		req.Body.Close()
 
 		// make a new reader so the next handler
 		// can still read the post normally as if
 		// nothing happened
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(reqbody))
+		req.Body = io.NopCloser(bytes.NewBuffer(reqbody))
 	}
 
 	inspin := NewRPCMsgIn(m.config, req, reqbody, -1, -1, 0)
