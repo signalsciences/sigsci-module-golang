@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -55,11 +55,11 @@ func helloworld(w http.ResponseWriter, r *http.Request) {
 		body = bytes.Repeat([]byte{'a'}, num)
 	}
 	if len(qs.Get("echo")) > 0 {
-		body, err = ioutil.ReadAll(r.Body)
+		body, err = io.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("ioutil.ReadAll erred: %s", err)
 		}
-		r.Body = ioutil.NopCloser(bytes.NewReader(body))
+		r.Body = io.NopCloser(bytes.NewReader(body))
 	}
 
 	if delay > 0 {

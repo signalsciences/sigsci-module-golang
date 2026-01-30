@@ -1,5 +1,9 @@
 # Golang Module Release Notes
 
+## 1.14.1 2026-01-30
+
+* Updated deprecated package `ioutil` for `io`.
+
 ## 1.14.0 2024-11-18
 
 * Allow the agent to edit application response headers
