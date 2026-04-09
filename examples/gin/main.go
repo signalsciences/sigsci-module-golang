@@ -1,5 +1,8 @@
 package main
 
+// go get github.com/gin-gonic/gin
+// cd examples/gin && go run .
+
 import (
 	"log"
 	"net/http"
@@ -14,10 +17,11 @@ func hellofunc(c *gin.Context) {
 
 func main() {
 	r := gin.New()
-	_, err := sigsci.Middleware(r,
-		//sigsci.Socket("unix", "/tmp/sigsci.sock"),
+	_, err := Middleware(r,
+		sigsci.Socket("unix", "/tmp/sigsci.sock"),
 		sigsci.Debug(true),
 		sigsci.MaxContentLength(20),
+		sigsci.ServerFlavor("gin"),
 	)
 	if err != nil {
 		log.Fatal(err)
