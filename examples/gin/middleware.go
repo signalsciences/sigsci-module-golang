@@ -86,13 +86,11 @@ func Middleware(r *gin.Engine, options ...sigsci.ModuleConfigOption) (*sigsci.Mo
 			status := int(wafResponse)
 			// Handle redirects
 			if status >= 300 && status <= 399 {
-
 				if v, ok := GetHeader(msgOut.RequestHeaders, "X-Sigsci-Redirect"); ok {
 					c.Redirect(status, v)
 					break
 				}
 			}
-
 			c.AbortWithStatusJSON(status, gin.H{
 				"error":   http.StatusText(status),
 				"blocked": "Request blocked by Fastly",
