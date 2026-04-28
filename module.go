@@ -120,6 +120,21 @@ func (m *Module) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	switch out.Type {
+	case schema.EndRequest:
+		for _, h := range out.Header {
+			switch h.Code {
+			case schema.AddHdr:
+				w.Header().Add(h.Args[0], h.Args[1])
+			case schema.SetHdr:
+				w.Header().Set(h.Args[0], h.Args[1])
+			}
+		}
+		w.WriteHeader(out.StatusCode)
+		w.Write(out.Body)
+		return
+	}
+
 	rw := newResponseWriter(w, out.RespActions)
 
 	wafresponse := out.WAFResponse

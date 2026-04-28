@@ -1,5 +1,9 @@
 # Golang Module Release Notes
 
+## 1.15.0 2026-04-29
+
+* Allow the agent to end the request with provided status code, headers and body
+
 ## 1.14.1 2026-01-30
 
 * Updated deprecated package `ioutil` for `io`.
