@@ -1276,6 +1276,71 @@ func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
+		case "Type":
+			z.Type, err = dc.ReadInt()
+			if err != nil {
+				err = msgp.WrapError(err, "Type")
+				return
+			}
+		case "StatusCode":
+			z.StatusCode, err = dc.ReadInt()
+			if err != nil {
+				err = msgp.WrapError(err, "StatusCode")
+				return
+			}
+		case "Header":
+			var zb0007 uint32
+			zb0007, err = dc.ReadArrayHeader()
+			if err != nil {
+				err = msgp.WrapError(err, "Header")
+				return
+			}
+			if cap(z.Header) >= int(zb0007) {
+				z.Header = (z.Header)[:zb0007]
+			} else {
+				z.Header = make([]Action, zb0007)
+			}
+			for za0005 := range z.Header {
+				var zb0008 uint32
+				zb0008, err = dc.ReadArrayHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "Header", za0005)
+					return
+				}
+				if zb0008 != 2 {
+					err = msgp.ArrayError{Wanted: 2, Got: zb0008}
+					return
+				}
+				z.Header[za0005].Code, err = dc.ReadInt8()
+				if err != nil {
+					err = msgp.WrapError(err, "Header", za0005, "Code")
+					return
+				}
+				var zb0009 uint32
+				zb0009, err = dc.ReadArrayHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "Header", za0005, "Args")
+					return
+				}
+				if cap(z.Header[za0005].Args) >= int(zb0009) {
+					z.Header[za0005].Args = (z.Header[za0005].Args)[:zb0009]
+				} else {
+					z.Header[za0005].Args = make([]string, zb0009)
+				}
+				for za0006 := range z.Header[za0005].Args {
+					z.Header[za0005].Args[za0006], err = dc.ReadString()
+					if err != nil {
+						err = msgp.WrapError(err, "Header", za0005, "Args", za0006)
+						return
+					}
+				}
+			}
+		case "Body":
+			z.Body, err = dc.ReadBytes(z.Body)
+			if err != nil {
+				err = msgp.WrapError(err, "Body")
+				return
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -1290,12 +1355,20 @@ func (z *RPCMsgOut) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
 	// check for omitted fields
-	zb0001Len := uint32(4)
-	var zb0001Mask uint8 /* 4 bits */
+	zb0001Len := uint32(8)
+	var zb0001Mask uint8 /* 8 bits */
 	_ = zb0001Mask
 	if z.RespActions == nil {
 		zb0001Len--
 		zb0001Mask |= 0x8
+	}
+	if z.Header == nil {
+		zb0001Len--
+		zb0001Mask |= 0x40
+	}
+	if z.Body == nil {
+		zb0001Len--
+		zb0001Mask |= 0x80
 	}
 	// variable map header, size zb0001Len
 	err = en.Append(0x80 | uint8(zb0001Len))
@@ -1385,6 +1458,74 @@ func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
 				}
 			}
 		}
+		// write "Type"
+		err = en.Append(0xa4, 0x54, 0x79, 0x70, 0x65)
+		if err != nil {
+			return
+		}
+		err = en.WriteInt(z.Type)
+		if err != nil {
+			err = msgp.WrapError(err, "Type")
+			return
+		}
+		// write "StatusCode"
+		err = en.Append(0xaa, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x43, 0x6f, 0x64, 0x65)
+		if err != nil {
+			return
+		}
+		err = en.WriteInt(z.StatusCode)
+		if err != nil {
+			err = msgp.WrapError(err, "StatusCode")
+			return
+		}
+		if (zb0001Mask & 0x40) == 0 { // if not omitted
+			// write "Header"
+			err = en.Append(0xa6, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72)
+			if err != nil {
+				return
+			}
+			err = en.WriteArrayHeader(uint32(len(z.Header)))
+			if err != nil {
+				err = msgp.WrapError(err, "Header")
+				return
+			}
+			for za0005 := range z.Header {
+				// array header, size 2
+				err = en.Append(0x92)
+				if err != nil {
+					return
+				}
+				err = en.WriteInt8(z.Header[za0005].Code)
+				if err != nil {
+					err = msgp.WrapError(err, "Header", za0005, "Code")
+					return
+				}
+				err = en.WriteArrayHeader(uint32(len(z.Header[za0005].Args)))
+				if err != nil {
+					err = msgp.WrapError(err, "Header", za0005, "Args")
+					return
+				}
+				for za0006 := range z.Header[za0005].Args {
+					err = en.WriteString(z.Header[za0005].Args[za0006])
+					if err != nil {
+						err = msgp.WrapError(err, "Header", za0005, "Args", za0006)
+						return
+					}
+				}
+			}
+		}
+		if (zb0001Mask & 0x80) == 0 { // if not omitted
+			// write "Body"
+			err = en.Append(0xa4, 0x42, 0x6f, 0x64, 0x79)
+			if err != nil {
+				return
+			}
+			err = en.WriteBytes(z.Body)
+			if err != nil {
+				err = msgp.WrapError(err, "Body")
+				return
+			}
+		}
 	}
 	return
 }
@@ -1393,12 +1534,20 @@ func (z *RPCMsgOut) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *RPCMsgOut) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// check for omitted fields
-	zb0001Len := uint32(4)
-	var zb0001Mask uint8 /* 4 bits */
+	zb0001Len := uint32(8)
+	var zb0001Mask uint8 /* 8 bits */
 	_ = zb0001Mask
 	if z.RespActions == nil {
 		zb0001Len--
 		zb0001Mask |= 0x8
+	}
+	if z.Header == nil {
+		zb0001Len--
+		zb0001Mask |= 0x40
+	}
+	if z.Body == nil {
+		zb0001Len--
+		zb0001Mask |= 0x80
 	}
 	// variable map header, size zb0001Len
 	o = append(o, 0x80|uint8(zb0001Len))
@@ -1433,6 +1582,31 @@ func (z *RPCMsgOut) MarshalMsg(b []byte) (o []byte, err error) {
 					o = msgp.AppendString(o, z.RespActions[za0003].Args[za0004])
 				}
 			}
+		}
+		// string "Type"
+		o = append(o, 0xa4, 0x54, 0x79, 0x70, 0x65)
+		o = msgp.AppendInt(o, z.Type)
+		// string "StatusCode"
+		o = append(o, 0xaa, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x43, 0x6f, 0x64, 0x65)
+		o = msgp.AppendInt(o, z.StatusCode)
+		if (zb0001Mask & 0x40) == 0 { // if not omitted
+			// string "Header"
+			o = append(o, 0xa6, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72)
+			o = msgp.AppendArrayHeader(o, uint32(len(z.Header)))
+			for za0005 := range z.Header {
+				// array header, size 2
+				o = append(o, 0x92)
+				o = msgp.AppendInt8(o, z.Header[za0005].Code)
+				o = msgp.AppendArrayHeader(o, uint32(len(z.Header[za0005].Args)))
+				for za0006 := range z.Header[za0005].Args {
+					o = msgp.AppendString(o, z.Header[za0005].Args[za0006])
+				}
+			}
+		}
+		if (zb0001Mask & 0x80) == 0 { // if not omitted
+			// string "Body"
+			o = append(o, 0xa4, 0x42, 0x6f, 0x64, 0x79)
+			o = msgp.AppendBytes(o, z.Body)
 		}
 	}
 	return
@@ -1546,6 +1720,71 @@ func (z *RPCMsgOut) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 				}
 			}
+		case "Type":
+			z.Type, bts, err = msgp.ReadIntBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Type")
+				return
+			}
+		case "StatusCode":
+			z.StatusCode, bts, err = msgp.ReadIntBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "StatusCode")
+				return
+			}
+		case "Header":
+			var zb0007 uint32
+			zb0007, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Header")
+				return
+			}
+			if cap(z.Header) >= int(zb0007) {
+				z.Header = (z.Header)[:zb0007]
+			} else {
+				z.Header = make([]Action, zb0007)
+			}
+			for za0005 := range z.Header {
+				var zb0008 uint32
+				zb0008, bts, err = msgp.ReadArrayHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Header", za0005)
+					return
+				}
+				if zb0008 != 2 {
+					err = msgp.ArrayError{Wanted: 2, Got: zb0008}
+					return
+				}
+				z.Header[za0005].Code, bts, err = msgp.ReadInt8Bytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Header", za0005, "Code")
+					return
+				}
+				var zb0009 uint32
+				zb0009, bts, err = msgp.ReadArrayHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Header", za0005, "Args")
+					return
+				}
+				if cap(z.Header[za0005].Args) >= int(zb0009) {
+					z.Header[za0005].Args = (z.Header[za0005].Args)[:zb0009]
+				} else {
+					z.Header[za0005].Args = make([]string, zb0009)
+				}
+				for za0006 := range z.Header[za0005].Args {
+					z.Header[za0005].Args[za0006], bts, err = msgp.ReadStringBytes(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Header", za0005, "Args", za0006)
+						return
+					}
+				}
+			}
+		case "Body":
+			z.Body, bts, err = msgp.ReadBytesBytes(bts, z.Body)
+			if err != nil {
+				err = msgp.WrapError(err, "Body")
+				return
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -1574,5 +1813,13 @@ func (z *RPCMsgOut) Msgsize() (s int) {
 			s += msgp.StringPrefixSize + len(z.RespActions[za0003].Args[za0004])
 		}
 	}
+	s += 5 + msgp.IntSize + 11 + msgp.IntSize + 7 + msgp.ArrayHeaderSize
+	for za0005 := range z.Header {
+		s += 1 + msgp.Int8Size + msgp.ArrayHeaderSize
+		for za0006 := range z.Header[za0005].Args {
+			s += msgp.StringPrefixSize + len(z.Header[za0005].Args[za0006])
+		}
+	}
+	s += 5 + msgp.BytesPrefixSize + len(z.Body)
 	return
 }

@@ -37,7 +37,18 @@ type RPCMsgOut struct {
 	RequestID      string      `json:",omitempty"`                  // Set if the server expects an UpdateRequest with this ID (UUID)
 	RequestHeaders [][2]string `json:",omitempty"`                  // Any additional information in the form of additional request headers
 	RespActions    []Action    `json:",omitempty" msg:",omitempty"` // Add or Delete application response headers
+
+	Type       int      // rpc response type
+	StatusCode int      // write response with provided status
+	Header     []Action `json:",omitempty" msg:",omitempty"`
+	Body       []byte   `json:",omitempty" msg:",omitempty"`
 }
+
+// RPCMsgOut Type
+const (
+	// End the request with the provided HTTP status, header, and body
+	EndRequest int = iota + 1
+)
 
 const (
 	AddHdr int8 = iota + 1
