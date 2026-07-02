@@ -38,10 +38,10 @@ type RPCMsgOut struct {
 	RequestHeaders [][2]string `json:",omitempty"`                  // Any additional information in the form of additional request headers
 	RespActions    []Action    `json:",omitempty" msg:",omitempty"` // Add or Delete application response headers
 
-	Type       int      // rpc response type
-	StatusCode int      // write response with provided status
-	Header     []Action `json:",omitempty" msg:",omitempty"`
-	Body       []byte   `json:",omitempty" msg:",omitempty"`
+	Type       int      `msg:"-"` // rpc response type
+	StatusCode int      `msg:"-"` // write response with provided status
+	Header     []Action `msg:"-"` //  `json:",omitempty" msg:",omitempty"`
+	Body       []byte   `msg:"-"` //  `json:",omitempty" msg:",omitempty"`
 }
 
 // RPCMsgOut Type

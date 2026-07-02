@@ -1,5 +1,9 @@
 # Golang Module Release Notes
 
+## 1.16.0 2026-07-02
+
+* Reverted the msgpack encoder/decoder changes
+
 ## 1.15.0 2026-04-29
 
 * Allow the agent to end the request with provided status code, headers and body
